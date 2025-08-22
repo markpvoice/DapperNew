@@ -1,250 +1,486 @@
-import { Button } from '@/components/ui/button';
-
 export default function HomePage() {
   return (
-    <>
+    <div style={{ margin: 0, padding: 0, fontFamily: 'Inter, system-ui, sans-serif' }}>
       {/* Navigation Header */}
-      <nav className="fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md border-b border-brand-gold/20">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="text-2xl font-bold text-brand-gold">
-              Dapper Squad
-            </div>
-            <div className="hidden md:flex space-x-8">
-              <a href="#home" className="text-white hover:text-brand-gold transition-colors">Home</a>
-              <a href="#services" className="text-white hover:text-brand-gold transition-colors">Services</a>
-              <a href="#about" className="text-white hover:text-brand-gold transition-colors">About</a>
-              <a href="#contact" className="text-white hover:text-brand-gold transition-colors">Contact</a>
-            </div>
-            <Button variant="gold" size="sm">Get Quote</Button>
+      <nav style={{
+        position: 'fixed',
+        top: 0,
+        width: '100%',
+        zIndex: 1000,
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid rgba(255, 215, 0, 0.3)',
+        padding: '1rem 0'
+      }}>
+        <div style={{ 
+          maxWidth: '1200px', 
+          margin: '0 auto', 
+          padding: '0 2rem', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center' 
+        }}>
+          <div style={{ 
+            fontSize: '1.5rem', 
+            fontWeight: 'bold', 
+            color: '#FFD700',
+            textShadow: '0 0 10px rgba(255, 215, 0, 0.3)'
+          }}>
+            Dapper Squad Entertainment
+          </div>
+          <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+            <a href="#home" style={{ 
+              color: 'white', 
+              textDecoration: 'none',
+              transition: 'color 0.3s ease'
+            }}>Home</a>
+            <a href="#services" style={{ color: 'white', textDecoration: 'none' }}>Services</a>
+            <a href="#about" style={{ color: 'white', textDecoration: 'none' }}>About</a>
+            <a href="#contact" style={{ color: 'white', textDecoration: 'none' }}>Contact</a>
+            <button style={{
+              backgroundColor: '#FFD700',
+              color: '#2C2C2C',
+              border: 'none',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}>
+              Get Quote
+            </button>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section id="home" className="min-h-screen relative overflow-hidden bg-gradient-to-br from-black via-brand-charcoal to-gray-900">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-32 h-32 bg-brand-gold/10 rounded-full blur-xl animate-pulse"></div>
-          <div className="absolute top-40 right-20 w-24 h-24 bg-brand-gold/5 rounded-full blur-lg animate-bounce"></div>
-          <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-brand-gold/5 rounded-full blur-2xl animate-pulse"></div>
-        </div>
+      <section id="home" style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #000000 0%, #2C2C2C 50%, #1a1a1a 100%)',
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden'
+      }}>
+        {/* Background Animation Elements */}
+        <div style={{
+          position: 'absolute',
+          top: '10%',
+          left: '10%',
+          width: '200px',
+          height: '200px',
+          background: 'radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%)',
+          borderRadius: '50%',
+          animation: 'pulse 3s ease-in-out infinite'
+        }}></div>
+        
+        <div style={{
+          position: 'absolute',
+          top: '60%',
+          right: '15%',
+          width: '150px',
+          height: '150px',
+          background: 'radial-gradient(circle, rgba(255, 215, 0, 0.05) 0%, transparent 70%)',
+          borderRadius: '50%',
+          animation: 'pulse 4s ease-in-out infinite'
+        }}></div>
 
-        <div className="relative z-10 container mx-auto px-4 pt-32 pb-20">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Main Hero Content */}
-            <div className="mb-8">
-              <h1 className="text-6xl md:text-8xl font-bold mb-6 animate-fade-in">
-                <span className="bg-gradient-to-r from-brand-gold via-yellow-400 to-brand-gold bg-clip-text text-transparent">
-                  Dapper Squad
-                </span>
-                <br />
-                <span className="text-white text-4xl md:text-6xl font-light">
-                  Entertainment
-                </span>
-              </h1>
-              
-              <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in">
-                Making every event <span className="text-brand-gold font-semibold">legendary</span> with professional DJ services, 
-                photography, and unforgettable entertainment experiences across Chicago & Milwaukee.
-              </p>
+        <div style={{
+          position: 'relative',
+          zIndex: 10,
+          textAlign: 'center',
+          maxWidth: '1000px',
+          padding: '0 2rem',
+          marginTop: '5rem'
+        }}>
+          {/* Main Hero Content */}
+          <h1 style={{
+            fontSize: 'clamp(3rem, 8vw, 7rem)',
+            fontWeight: 'bold',
+            marginBottom: '2rem',
+            lineHeight: '1.1'
+          }}>
+            <span style={{
+              background: 'linear-gradient(45deg, #FFD700, #FFA500, #FFD700)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              textShadow: '0 0 30px rgba(255, 215, 0, 0.3)'
+            }}>
+              Dapper Squad
+            </span>
+            <br />
+            <span style={{
+              color: 'white',
+              fontSize: 'clamp(2rem, 5vw, 4rem)',
+              fontWeight: '300'
+            }}>
+              Entertainment
+            </span>
+          </h1>
+          
+          <p style={{
+            fontSize: 'clamp(1.1rem, 2.5vw, 1.5rem)',
+            color: '#e0e0e0',
+            marginBottom: '3rem',
+            maxWidth: '800px',
+            margin: '0 auto 3rem',
+            lineHeight: '1.6'
+          }}>
+            Making every event <span style={{ color: '#FFD700', fontWeight: '600' }}>legendary</span> with professional DJ services, 
+            photography, and unforgettable entertainment experiences across Chicago & Milwaukee.
+          </p>
+
+          {/* CTA Buttons */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem',
+            justifyContent: 'center',
+            marginBottom: '4rem'
+          }}>
+            <button style={{
+              backgroundColor: '#FFD700',
+              color: '#2C2C2C',
+              border: 'none',
+              padding: '1rem 2rem',
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              borderRadius: '0.75rem',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 10px 30px rgba(255, 215, 0, 0.3)',
+              minWidth: '200px'
+            }}>
+              🎉 Book Your Event
+            </button>
+            <button style={{
+              backgroundColor: 'transparent',
+              color: '#FFD700',
+              border: '2px solid #FFD700',
+              padding: '1rem 2rem',
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              borderRadius: '0.75rem',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              minWidth: '200px'
+            }}>
+              View Our Work
+            </button>
+          </div>
+
+          {/* Stats */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '2rem',
+            marginTop: '4rem'
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                fontSize: '3rem', 
+                fontWeight: 'bold', 
+                color: '#FFD700', 
+                marginBottom: '0.5rem',
+                textShadow: '0 0 20px rgba(255, 215, 0, 0.5)'
+              }}>500+</div>
+              <div style={{ color: '#e0e0e0', fontSize: '1.1rem' }}>Events Completed</div>
             </div>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12 animate-fade-in">
-              <Button variant="gold" size="xl" className="text-lg px-8 py-4 shadow-2xl hover:shadow-brand-gold/25 transition-all duration-300">
-                🎉 Book Your Event
-              </Button>
-              <Button variant="gold-outline" size="xl" className="text-lg px-8 py-4 hover:shadow-lg transition-all duration-300">
-                View Our Work
-              </Button>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                fontSize: '3rem', 
+                fontWeight: 'bold', 
+                color: '#FFD700', 
+                marginBottom: '0.5rem',
+                textShadow: '0 0 20px rgba(255, 215, 0, 0.5)'
+              }}>5★</div>
+              <div style={{ color: '#e0e0e0', fontSize: '1.1rem' }}>Average Rating</div>
             </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 animate-fade-in">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-brand-gold mb-2">500+</div>
-                <div className="text-gray-300">Events Completed</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-brand-gold mb-2">5★</div>
-                <div className="text-gray-300">Average Rating</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-brand-gold mb-2">10+</div>
-                <div className="text-gray-300">Years Experience</div>
-              </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                fontSize: '3rem', 
+                fontWeight: 'bold', 
+                color: '#FFD700', 
+                marginBottom: '0.5rem',
+                textShadow: '0 0 20px rgba(255, 215, 0, 0.5)'
+              }}>10+</div>
+              <div style={{ color: '#e0e0e0', fontSize: '1.1rem' }}>Years Experience</div>
             </div>
           </div>
         </div>
 
         {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <div className="w-6 h-10 border-2 border-brand-gold rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-brand-gold rounded-full mt-2 animate-pulse"></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '2rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          animation: 'bounce 2s infinite'
+        }}>
+          <div style={{
+            width: '24px',
+            height: '40px',
+            border: '2px solid #FFD700',
+            borderRadius: '20px',
+            display: 'flex',
+            justifyContent: 'center',
+            paddingTop: '8px'
+          }}>
+            <div style={{
+              width: '4px',
+              height: '12px',
+              backgroundColor: '#FFD700',
+              borderRadius: '2px',
+              animation: 'pulse 1.5s ease-in-out infinite'
+            }}></div>
           </div>
         </div>
       </section>
 
       {/* Services Section */}
-      <section id="services" className="py-20 bg-gray-900">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Our <span className="text-brand-gold">Services</span>
+      <section id="services" style={{
+        padding: '5rem 0',
+        backgroundColor: '#1a1a1a',
+        color: 'white'
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <h2 style={{
+              fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+              fontWeight: 'bold',
+              marginBottom: '1.5rem'
+            }}>
+              Our <span style={{ color: '#FFD700' }}>Services</span>
             </h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            <p style={{
+              fontSize: '1.3rem',
+              color: '#e0e0e0',
+              maxWidth: '600px',
+              margin: '0 auto'
+            }}>
               From intimate gatherings to grand celebrations, we bring the perfect soundtrack to your special moments.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '2rem'
+          }}>
             {/* DJ Services */}
-            <div className="group bg-white/5 backdrop-blur-lg rounded-xl p-8 border border-white/10 hover:border-brand-gold/50 transition-all duration-300 hover:transform hover:scale-105">
-              <div className="text-5xl mb-6">🎵</div>
-              <h3 className="text-2xl font-bold text-brand-gold mb-4">Professional DJ Services</h3>
-              <p className="text-gray-300 mb-6 leading-relaxed">
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '1rem',
+              padding: '2rem',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              transition: 'all 0.3s ease'
+            }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1.5rem' }}>🎵</div>
+              <h3 style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: 'bold', 
+                color: '#FFD700', 
+                marginBottom: '1rem' 
+              }}>Professional DJ Services</h3>
+              <p style={{ 
+                color: '#e0e0e0', 
+                marginBottom: '1.5rem', 
+                lineHeight: '1.6' 
+              }}>
                 State-of-the-art sound systems, extensive music libraries, and seamless mixing for weddings, 
                 corporate events, and private parties.
               </p>
-              <ul className="text-sm text-gray-400 space-y-2">
-                <li>• Premium sound equipment</li>
-                <li>• Unlimited music requests</li>
-                <li>• Professional lighting</li>
-                <li>• MC services included</li>
+              <ul style={{ 
+                color: '#c0c0c0', 
+                fontSize: '0.9rem',
+                listStyle: 'none',
+                padding: 0
+              }}>
+                <li style={{ marginBottom: '0.5rem' }}>• Premium sound equipment</li>
+                <li style={{ marginBottom: '0.5rem' }}>• Unlimited music requests</li>
+                <li style={{ marginBottom: '0.5rem' }}>• Professional lighting</li>
+                <li style={{ marginBottom: '0.5rem' }}>• MC services included</li>
               </ul>
             </div>
 
             {/* Photography */}
-            <div className="group bg-white/5 backdrop-blur-lg rounded-xl p-8 border border-white/10 hover:border-brand-gold/50 transition-all duration-300 hover:transform hover:scale-105">
-              <div className="text-5xl mb-6">📸</div>
-              <h3 className="text-2xl font-bold text-brand-gold mb-4">Event Photography</h3>
-              <p className="text-gray-300 mb-6 leading-relaxed">
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '1rem',
+              padding: '2rem',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              transition: 'all 0.3s ease'
+            }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1.5rem' }}>📸</div>
+              <h3 style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: 'bold', 
+                color: '#FFD700', 
+                marginBottom: '1rem' 
+              }}>Event Photography</h3>
+              <p style={{ 
+                color: '#e0e0e0', 
+                marginBottom: '1.5rem', 
+                lineHeight: '1.6' 
+              }}>
                 Capture every precious moment with our professional photography services. 
                 High-quality images delivered within 48 hours.
               </p>
-              <ul className="text-sm text-gray-400 space-y-2">
-                <li>• Professional equipment</li>
-                <li>• Same-day preview gallery</li>
-                <li>• Unlimited digital downloads</li>
-                <li>• Photo booth options</li>
+              <ul style={{ 
+                color: '#c0c0c0', 
+                fontSize: '0.9rem',
+                listStyle: 'none',
+                padding: 0
+              }}>
+                <li style={{ marginBottom: '0.5rem' }}>• Professional equipment</li>
+                <li style={{ marginBottom: '0.5rem' }}>• Same-day preview gallery</li>
+                <li style={{ marginBottom: '0.5rem' }}>• Unlimited digital downloads</li>
+                <li style={{ marginBottom: '0.5rem' }}>• Photo booth options</li>
               </ul>
             </div>
 
             {/* Karaoke */}
-            <div className="group bg-white/5 backdrop-blur-lg rounded-xl p-8 border border-white/10 hover:border-brand-gold/50 transition-all duration-300 hover:transform hover:scale-105">
-              <div className="text-5xl mb-6">🎤</div>
-              <h3 className="text-2xl font-bold text-brand-gold mb-4">Karaoke & Entertainment</h3>
-              <p className="text-gray-300 mb-6 leading-relaxed">
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '1rem',
+              padding: '2rem',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              transition: 'all 0.3s ease'
+            }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1.5rem' }}>🎤</div>
+              <h3 style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: 'bold', 
+                color: '#FFD700', 
+                marginBottom: '1rem' 
+              }}>Karaoke & Entertainment</h3>
+              <p style={{ 
+                color: '#e0e0e0', 
+                marginBottom: '1.5rem', 
+                lineHeight: '1.6' 
+              }}>
                 Interactive karaoke sessions with our extensive song library. 
                 Perfect for breaking the ice and getting everyone involved.
               </p>
-              <ul className="text-sm text-gray-400 space-y-2">
-                <li>• 10,000+ song library</li>
-                <li>• Professional microphones</li>
-                <li>• Large display screens</li>
-                <li>• Interactive games</li>
+              <ul style={{ 
+                color: '#c0c0c0', 
+                fontSize: '0.9rem',
+                listStyle: 'none',
+                padding: 0
+              }}>
+                <li style={{ marginBottom: '0.5rem' }}>• 10,000+ song library</li>
+                <li style={{ marginBottom: '0.5rem' }}>• Professional microphones</li>
+                <li style={{ marginBottom: '0.5rem' }}>• Large display screens</li>
+                <li style={{ marginBottom: '0.5rem' }}>• Interactive games</li>
               </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section id="about" className="py-20 bg-gradient-to-r from-brand-charcoal to-gray-800">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                Why Choose <span className="text-brand-gold">Dapper Squad?</span>
-              </h2>
-              <p className="text-xl text-gray-300 mb-8 leading-relaxed">
-                With over a decade of experience in the entertainment industry, we've perfected the art of creating 
-                unforgettable experiences. Our team of professionals is dedicated to making your event seamless and spectacular.
-              </p>
-              
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center text-black font-bold text-sm">✓</div>
-                  <div>
-                    <h4 className="text-white font-semibold mb-1">Flat Rate Pricing</h4>
-                    <p className="text-gray-400">No hidden fees or surprise charges. What you see is what you pay.</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center text-black font-bold text-sm">✓</div>
-                  <div>
-                    <h4 className="text-white font-semibold mb-1">Fast Booking</h4>
-                    <p className="text-gray-400">Quick response times and easy online booking process.</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center text-black font-bold text-sm">✓</div>
-                  <div>
-                    <h4 className="text-white font-semibold mb-1">5-Star Reviews</h4>
-                    <p className="text-gray-400">Consistently rated 5 stars across all platforms by our satisfied clients.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="relative">
-              <div className="bg-brand-gold/10 rounded-2xl p-8 backdrop-blur-sm border border-brand-gold/20">
-                <div className="text-center">
-                  <div className="text-6xl mb-4">🏆</div>
-                  <h3 className="text-2xl font-bold text-brand-gold mb-4">Award Winning Service</h3>
-                  <p className="text-gray-300 leading-relaxed">
-                    Recognized as the top entertainment provider in the Chicago-Milwaukee area. 
-                    Our commitment to excellence shows in every event we produce.
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Contact/CTA Section */}
-      <section id="contact" className="py-20 bg-black">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to Make Your Event <span className="text-brand-gold">Legendary?</span>
+      <section id="contact" style={{
+        padding: '5rem 0',
+        backgroundColor: '#000',
+        textAlign: 'center'
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+          <h2 style={{
+            fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+            fontWeight: 'bold',
+            color: 'white',
+            marginBottom: '1.5rem'
+          }}>
+            Ready to Make Your Event <span style={{ color: '#FFD700' }}>Legendary?</span>
           </h2>
-          <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
+          <p style={{
+            fontSize: '1.3rem',
+            color: '#e0e0e0',
+            marginBottom: '3rem',
+            maxWidth: '600px',
+            margin: '0 auto 3rem'
+          }}>
             Let's discuss your vision and create an unforgettable experience for you and your guests.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
-            <Button variant="gold" size="xl" className="text-lg px-12 py-4">
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem',
+            justifyContent: 'center',
+            marginBottom: '3rem'
+          }}>
+            <button style={{
+              backgroundColor: '#FFD700',
+              color: '#2C2C2C',
+              border: 'none',
+              padding: '1rem 3rem',
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              borderRadius: '0.75rem',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              minWidth: '250px'
+            }}>
               📞 Call (555) 123-4567
-            </Button>
-            <Button variant="gold-outline" size="xl" className="text-lg px-12 py-4">
+            </button>
+            <button style={{
+              backgroundColor: 'transparent',
+              color: '#FFD700',
+              border: '2px solid #FFD700',
+              padding: '1rem 3rem',
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              borderRadius: '0.75rem',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              minWidth: '250px'
+            }}>
               📧 Get Free Quote
-            </Button>
+            </button>
           </div>
 
-          <div className="text-gray-400">
-            <p>📍 Serving Chicago, Milwaukee & Surrounding Areas</p>
-            <p className="mt-2">✉️ info@dappersquad.com | 🌐 www.dappersquad.com</p>
+          <div style={{ color: '#999' }}>
+            <p style={{ marginBottom: '0.5rem' }}>📍 Serving Chicago, Milwaukee & Surrounding Areas</p>
+            <p>✉️ info@dappersquad.com | 🌐 www.dappersquad.com</p>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-brand-charcoal py-8 border-t border-brand-gold/20">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-brand-gold font-bold text-xl mb-4 md:mb-0">
-              Dapper Squad Entertainment
-            </div>
-            <div className="text-gray-400 text-sm">
-              © 2025 Dapper Squad Entertainment. All rights reserved.
-            </div>
+      <footer style={{
+        backgroundColor: '#2C2C2C',
+        padding: '2rem 0',
+        borderTop: '1px solid rgba(255, 215, 0, 0.2)'
+      }}>
+        <div style={{ 
+          maxWidth: '1200px', 
+          margin: '0 auto', 
+          padding: '0 2rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem'
+        }}>
+          <div style={{ 
+            color: '#FFD700', 
+            fontWeight: 'bold', 
+            fontSize: '1.2rem' 
+          }}>
+            Dapper Squad Entertainment
+          </div>
+          <div style={{ color: '#999', fontSize: '0.9rem' }}>
+            © 2025 Dapper Squad Entertainment. All rights reserved.
           </div>
         </div>
       </footer>
-    </>
+
+    </div>
   );
 }
