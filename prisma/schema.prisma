@@ -1,0 +1,179 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  priceRange  String?  @map("price_range") @db.VarChar(100)
+  imageUrl    String?  @map("image_url") @db.VarChar(500)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("services")
+}
+
+model Booking {
+  id                String                @id @default(cuid())
+  bookingReference  String                @unique @map("booking_reference") @db.VarChar(50)
+  clientName        String                @map("client_name") @db.VarChar(255)
+  clientEmail       String                @map("client_email") @db.VarChar(255)
+  clientPhone       String                @map("client_phone") @db.VarChar(20)
+  eventDate         DateTime              @map("event_date") @db.Date
+  eventStartTime    DateTime?             @map("event_start_time") @db.Time
+  eventEndTime      DateTime?             @map("event_end_time") @db.Time
+  eventType         String                @map("event_type") @db.VarChar(100)
+  servicesNeeded    String[]              @map("services_needed")
+  venueName         String?               @map("venue_name") @db.VarChar(255)
+  venueAddress      String?               @map("venue_address") @db.Text
+  guestCount        Int?                  @map("guest_count")
+  specialRequests   String?               @map("special_requests") @db.Text
+  status            BookingStatus         @default(PENDING)
+  depositAmount     Decimal?              @map("deposit_amount") @db.Decimal(10, 2)
+  totalAmount       Decimal?              @map("total_amount") @db.Decimal(10, 2)
+  paymentStatus     PaymentStatus         @default(UNPAID) @map("payment_status")
+  createdAt         DateTime              @default(now()) @map("created_at")
+  updatedAt         DateTime              @updatedAt @map("updated_at")
+
+  // Relations
+  calendarAvailability CalendarAvailability[]
+  emailNotifications   EmailNotification[]
+
+  // Indexes for performance
+  @@index([eventDate])
+  @@index([clientEmail])
+  @@index([status])
+  @@index([createdAt])
+  @@map("bookings")
+}
+
+model CalendarAvailability {
+  id            Int       @id @default(autoincrement())
+  date          DateTime  @unique @db.Date
+  isAvailable   Boolean   @default(true) @map("is_available")
+  bookingId     String?   @map("booking_id")
+  blockedReason String?   @map("blocked_reason") @db.VarChar(255)
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@index([date])
+  @@index([isAvailable])
+  @@map("calendar_availability")
+}
+
+model ContactSubmission {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  email     String   @db.VarChar(255)
+  phone     String?  @db.VarChar(20)
+  subject   String?  @db.VarChar(255)
+  message   String   @db.Text
+  source    String   @default("website") @db.VarChar(50)
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("contact_submissions")
+}
+
+model AdminUser {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  name         String    @db.VarChar(255)
+  role         String    @default("admin") @db.VarChar(50)
+  lastLogin    DateTime? @map("last_login")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@map("admin_users")
+}
+
+model EmailNotification {
+  id             Int                    @id @default(autoincrement())
+  recipientEmail String                 @map("recipient_email") @db.VarChar(255)
+  subject        String                 @db.VarChar(255)
+  templateName   String?                @map("template_name") @db.VarChar(100)
+  bookingId      String?                @map("booking_id")
+  status         EmailNotificationStatus @default(PENDING)
+  sentAt         DateTime?              @map("sent_at")
+  errorMessage   String?                @map("error_message") @db.Text
+  createdAt      DateTime               @default(now()) @map("created_at")
+
+  // Relations
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([recipientEmail])
+  @@index([status])
+  @@index([createdAt])
+  @@map("email_notifications")
+}
+
+model Testimonial {
+  id          Int      @id @default(autoincrement())
+  clientName  String   @map("client_name") @db.VarChar(255)
+  content     String   @db.Text
+  rating      Int      @default(5)
+  eventType   String?  @map("event_type") @db.VarChar(100)
+  eventDate   DateTime? @map("event_date") @db.Date
+  isApproved  Boolean  @default(false) @map("is_approved")
+  isFeatured  Boolean  @default(false) @map("is_featured")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("testimonials")
+}
+
+// Analytics and tracking
+model PageView {
+  id        Int      @id @default(autoincrement())
+  page      String   @db.VarChar(255)
+  userAgent String?  @map("user_agent") @db.Text
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  referrer  String?  @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("page_views")
+}
+
+// Enums
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+
+  @@map("booking_status")
+}
+
+enum PaymentStatus {
+  UNPAID
+  DEPOSIT_PAID
+  PAID
+  REFUNDED
+  PARTIALLY_REFUNDED
+
+  @@map("payment_status")
+}
+
+enum EmailNotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  DELIVERED
+  OPENED
+  CLICKED
+
+  @@map("email_notification_status")
+}
