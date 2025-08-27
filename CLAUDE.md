@@ -918,4 +918,199 @@ ADMIN_PASSWORD_HASH="$2b$10$..."
 
 ---
 
+## 🚨 **MANDATORY DEVELOPMENT WORKFLOW & BEST PRACTICES**
+
+**CRITICAL: These practices MUST be followed for every task without exception**
+
+### ⚡ **Required Pre-Work Checklist**
+Before starting ANY development task, ALWAYS:
+
+1. **📋 Create Todo List**: Use TodoWrite tool to break down the task into specific, actionable items
+2. **🔍 Environment Check**: Verify local development environment is running:
+   ```bash
+   npm run dev          # Next.js server at http://localhost:3000
+   npx prisma studio    # Database GUI at http://localhost:5555
+   ```
+3. **🗄️ Database Status**: Ensure local PostgreSQL database is operational with seeded data
+4. **📖 Read Documentation**: Review existing code patterns and architecture before implementing
+
+### 🧪 **Test-Driven Development (TDD) - MANDATORY**
+**NEVER write code without following TDD cycle:**
+
+1. **RED**: Write failing test first
+2. **GREEN**: Write minimal code to pass test  
+3. **REFACTOR**: Improve code while keeping tests green
+
+**Test Commands (Run these frequently):**
+```bash
+npm run test          # Unit tests
+npm run test:watch    # Watch mode during development
+npm run test:e2e      # End-to-end tests
+npm run test:coverage # Code coverage reports
+```
+
+### 🔧 **Code Quality - ZERO TOLERANCE POLICY**
+**NEVER commit code that fails these checks:**
+
+```bash
+# MANDATORY before any commit:
+npm run lint          # Must pass with 0 errors/warnings
+npm run format        # Must auto-format all files
+npm run typecheck     # Must pass TypeScript validation
+npm run build         # Must build successfully
+```
+
+**Pre-commit hooks will automatically enforce these standards.**
+
+### 🏃‍♂️ **Development Workflow - EVERY TASK**
+
+#### Step 1: Planning & Setup
+```bash
+# 1. Create todo list for task breakdown
+# 2. Start development server
+npm run dev
+# 3. Start test watcher
+npm run test:watch
+# 4. Open Prisma Studio for database
+npx prisma studio
+```
+
+#### Step 2: TDD Implementation
+```bash
+# For each feature:
+# 1. Write failing test
+# 2. Run test to confirm it fails
+# 3. Write minimal implementation
+# 4. Run test to confirm it passes
+# 5. Refactor if needed
+# 6. Repeat for next feature
+```
+
+#### Step 3: Quality Assurance
+```bash
+# Before considering task complete:
+npm run lint          # Fix all linting issues
+npm run typecheck     # Resolve all TypeScript errors
+npm run test          # Ensure all tests pass
+npm run build         # Verify production build works
+```
+
+#### Step 4: Local Testing
+```bash
+# Test the application manually:
+# 1. Navigate to http://localhost:3000
+# 2. Test all implemented features
+# 3. Verify database operations in Prisma Studio
+# 4. Check browser console for errors
+# 5. Test responsive design on mobile
+```
+
+#### Step 5: Documentation & Commit
+```bash
+# 1. Update CLAUDE.md with implementation details
+# 2. Update ToDo.md with completed tasks
+# 3. Stage and commit changes with descriptive message
+# 4. Push to GitHub if requested
+```
+
+### 📁 **File Organization Standards**
+**ALWAYS follow these patterns:**
+
+- **Components**: Create in appropriate subdirectory (`ui/`, `forms/`, `sections/`, `layout/`)
+- **API Routes**: Follow Next.js App Router structure (`app/api/`)
+- **Tests**: Mirror source structure in `tests/` directory
+- **Types**: Centralize in `src/types/` with descriptive names
+- **Utilities**: Group by functionality in `src/lib/`
+
+### 🛡️ **Security & Best Practices**
+**NEVER compromise on:**
+
+- **Input Validation**: All inputs must use Zod schemas
+- **Authentication**: JWT tokens, secure cookies, rate limiting
+- **Database**: Use Prisma ORM, never raw SQL
+- **Error Handling**: Comprehensive try-catch with user-friendly messages
+- **TypeScript**: Full type safety, no `any` types
+- **Environment Variables**: Secure handling, never commit secrets
+
+### 📊 **Performance Standards**
+**Maintain these benchmarks:**
+
+- **Page Load Time**: < 1.5 seconds
+- **Bundle Size**: Monitor with `npm run build`
+- **Database Queries**: Optimize with Prisma query helpers
+- **Image Optimization**: Use Next.js Image component
+- **Code Splitting**: Dynamic imports for large components
+
+### 🚀 **Local Development Commands**
+**Essential commands for daily development:**
+
+```bash
+# Development
+npm run dev           # Start Next.js server
+npm run db:studio     # Database management GUI
+npm run db:seed       # Reseed database with sample data
+npm run db:reset      # Reset and reseed database
+
+# Testing & Quality
+npm run test          # Run all tests
+npm run test:watch    # Watch mode for TDD
+npm run lint          # Code linting
+npm run format        # Code formatting
+npm run typecheck     # TypeScript validation
+
+# Database Operations  
+npx prisma migrate dev           # Create new migration
+npx prisma db push              # Push schema changes
+npx prisma generate             # Generate Prisma client
+npx prisma migrate reset        # Reset migrations
+```
+
+### 🔄 **Issue Resolution Process**
+**When encountering problems:**
+
+1. **Check Error Messages**: Read and understand the full error
+2. **Review Logs**: Check console, terminal, and database logs
+3. **Verify Environment**: Ensure all services are running
+4. **Test Isolation**: Create minimal reproduction case
+5. **Database State**: Check data integrity in Prisma Studio
+6. **Dependencies**: Verify all packages are installed
+7. **Documentation**: Review API docs and code comments
+
+### 📝 **Documentation Updates - MANDATORY**
+**After EVERY task completion:**
+
+1. **CLAUDE.md**: Update implementation status, add new patterns
+2. **ToDo.md**: Mark completed tasks, add discovered follow-up items  
+3. **API Documentation**: Update if API changes were made
+4. **Code Comments**: Add JSDoc comments for complex functions
+5. **README**: Update setup instructions if process changes
+
+### ⚠️ **NEVER SKIP THESE STEPS**
+**These are non-negotiable requirements:**
+
+- ❌ Never commit without running linting and tests
+- ❌ Never push broken code to main branch
+- ❌ Never implement features without tests
+- ❌ Never hardcode secrets or configurations
+- ❌ Never use `any` type in TypeScript
+- ❌ Never skip input validation
+- ❌ Never leave console.log statements in production code
+- ❌ Never commit without updating documentation
+
+### 🎯 **Success Criteria for Task Completion**
+**A task is only complete when ALL of these are true:**
+
+✅ Todo list shows all items as completed  
+✅ All tests pass (`npm run test`)  
+✅ Zero ESLint errors/warnings (`npm run lint`)  
+✅ TypeScript compiles without errors (`npm run typecheck`)  
+✅ Application builds successfully (`npm run build`)  
+✅ Local application runs without errors (`npm run dev`)  
+✅ Database operations work correctly (tested in Prisma Studio)  
+✅ CLAUDE.md updated with implementation details  
+✅ ToDo.md updated with task completion status  
+✅ Code committed to git with descriptive message  
+
+---
+
 *This documentation serves as the complete technical and business reference for the Dapper Squad Entertainment website upgrade project. Keep this updated as the project evolves.*

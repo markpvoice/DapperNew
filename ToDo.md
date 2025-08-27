@@ -470,6 +470,54 @@
 
 ---
 
+## 🚨 **MANDATORY DEVELOPMENT WORKFLOW REMINDER**
+
+**⚠️ CRITICAL: For ANY new task or feature request, the following workflow MUST be followed:**
+
+### 📋 **Step 1: Task Planning (REQUIRED)**
+- **Create TodoWrite list**: Break down task into specific, actionable items
+- **Review documentation**: Read existing code patterns and architecture
+- **Verify environment**: Ensure local dev server and database are running
+
+### 🧪 **Step 2: Test-Driven Development (MANDATORY)**
+- **Write tests first**: Follow RED-GREEN-REFACTOR cycle
+- **No code without tests**: Every feature must have corresponding tests
+- **Run tests frequently**: Use `npm run test:watch` during development
+
+### 🔧 **Step 3: Code Quality (ZERO TOLERANCE)**
+- **Lint before commit**: `npm run lint` must pass with 0 errors/warnings
+- **Format code**: `npm run format` must be run on all files
+- **TypeScript compliance**: `npm run typecheck` must pass
+- **Build verification**: `npm run build` must succeed
+
+### 🧪 **Step 4: Local Testing (REQUIRED)**
+- **Manual testing**: Navigate to http://localhost:3000 and test features
+- **Database verification**: Check operations in Prisma Studio
+- **Error checking**: Review browser console for any errors
+- **Mobile testing**: Verify responsive design works
+
+### 📝 **Step 5: Documentation (MANDATORY)**
+- **Update CLAUDE.md**: Add implementation details and patterns
+- **Update ToDo.md**: Mark completed tasks, add follow-up items
+- **Update API docs**: If API changes were made
+- **Code comments**: Add JSDoc for complex functions
+
+### ✅ **Task Complete Criteria**
+A task is NOT complete until ALL of these are true:
+- ✅ Todo list shows all items completed
+- ✅ All tests pass (`npm run test`)
+- ✅ Zero linting errors (`npm run lint`)
+- ✅ TypeScript compiles (`npm run typecheck`)
+- ✅ Application builds (`npm run build`)
+- ✅ Local app runs correctly (`npm run dev`)
+- ✅ Database operations work (tested in Prisma Studio)
+- ✅ Documentation updated (CLAUDE.md, ToDo.md)
+- ✅ Changes committed to git
+
+**🚀 This workflow ensures consistent quality and prevents technical debt.**
+
+---
+
 *This roadmap represents approximately 12-16 weeks of development work, depending on team size and complexity requirements. Adjust timelines based on available resources and business priorities.*
 
 **Total Estimated Timeline: 3-4 months for full implementation**

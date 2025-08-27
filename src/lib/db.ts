@@ -112,7 +112,7 @@ export async function checkDatabaseHealth() {
 
 // Database transaction wrapper with error handling
 export async function withTransaction<T>(
-  operation: (tx: any) => Promise<T>,
+  operation: (_tx: any) => Promise<T>,
   maxRetries = 3
 ): Promise<{ success: boolean; data?: T; error?: string }> {
   let attempt = 0;

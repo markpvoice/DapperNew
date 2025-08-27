@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { verifyAuth } from '@/lib/auth';
+// Import removed as verifyAuth not used in GET endpoint
 
 // Query parameters schema
 const calendarSchema = z.object({
