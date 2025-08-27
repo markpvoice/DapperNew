@@ -1,3 +1,94 @@
+import { CalendarSection } from '@/components/ui/calendar-section';
+import { PhotoGallery } from '@/components/ui/photo-gallery';
+import { VideoTestimonials } from '@/components/ui/video-testimonials';
+import { SocialMediaIntegration } from '@/components/ui/social-media-integration';
+
+// Sample photos for the gallery
+const samplePhotos = [
+  {
+    id: '1',
+    src: '/images/dj-setup-wedding.jpg',
+    alt: 'Professional DJ setup at wedding reception',
+    caption: 'Premium sound system and lighting setup at an elegant wedding reception in Chicago',
+    category: 'dj',
+    thumbnail: '/images/thumbs/dj-setup-wedding-thumb.jpg',
+  },
+  {
+    id: '2',
+    src: '/images/karaoke-corporate.jpg', 
+    alt: 'Corporate team enjoying karaoke night',
+    caption: 'Interactive karaoke session bringing together corporate teams for team building',
+    category: 'karaoke',
+    thumbnail: '/images/thumbs/karaoke-corporate-thumb.jpg',
+  },
+  {
+    id: '3',
+    src: '/images/photography-anniversary.jpg',
+    alt: 'Candid photography at anniversary celebration',
+    caption: 'Capturing precious moments and genuine emotions at a golden anniversary party',
+    category: 'photography',
+    thumbnail: '/images/thumbs/photography-anniversary-thumb.jpg',
+  },
+  {
+    id: '4',
+    src: '/images/dj-outdoor-party.jpg',
+    alt: 'Outdoor DJ setup for summer party',
+    caption: 'Weather-resistant professional setup for outdoor summer celebration',
+    category: 'dj',
+    thumbnail: '/images/thumbs/dj-outdoor-party-thumb.jpg',
+  },
+  {
+    id: '5',
+    src: '/images/karaoke-birthday.jpg',
+    alt: 'Birthday party karaoke fun',
+    caption: 'Birthday celebration with friends enjoying our extensive song library',
+    category: 'karaoke',
+    thumbnail: '/images/thumbs/karaoke-birthday-thumb.jpg',
+  },
+  {
+    id: '6',
+    src: '/images/photography-wedding.jpg',
+    alt: 'Professional wedding photography',
+    caption: 'Elegant wedding photography capturing the perfect moments of your special day',
+    category: 'photography',
+    thumbnail: '/images/thumbs/photography-wedding-thumb.jpg',
+  },
+];
+
+// Sample video testimonials
+const sampleVideoTestimonials = [
+  {
+    id: '1',
+    clientName: 'Maya & Andre',
+    eventType: 'Wedding',
+    videoUrl: '/videos/maya-andre-testimonial.mp4',
+    thumbnailUrl: '/images/testimonial-maya-andre-thumb.jpg',
+    quote: 'They nailed the timeline and kept the floor full. Our wedding day was absolutely perfect thanks to Dapper Squad!',
+    rating: 5,
+    eventDate: '2024-06-15',
+  },
+  {
+    id: '2',
+    clientName: 'Vantage Labs',
+    eventType: 'Corporate Event',
+    videoUrl: '/videos/vantage-labs-testimonial.mp4',
+    thumbnailUrl: '/images/testimonial-vantage-labs-thumb.jpg',
+    quote: 'Our team actually sang karaoke—effortless. Professional service that brought our whole company together.',
+    rating: 5,
+    eventDate: '2024-03-20',
+  },
+  {
+    id: '3',
+    clientName: 'North Shore Prep',
+    eventType: 'School Event',
+    videoUrl: '/videos/north-shore-prep-testimonial.mp4',
+    thumbnailUrl: '/images/testimonial-north-shore-prep-thumb.jpg',
+    quote: 'Professional, responsive, photos in days. Made our school event memorable for all the students.',
+    rating: 5,
+    eventDate: '2024-09-10',
+  },
+];
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
@@ -119,14 +210,14 @@ export default function HomePage() {
             A quick peek at the fun we bring to every party.
           </p>
 
-          {/* Photo Gallery Placeholder */}
-          <div className="bg-brand-charcoal rounded-2xl h-96 flex items-center justify-center text-white relative overflow-hidden">
-            <div className="text-center">
-              <div className="text-6xl mb-4">📸</div>
-              <h3 className="text-2xl font-semibold mb-2">Event Photo Gallery</h3>
-              <p className="opacity-80">Professional photos from recent events</p>
-            </div>
-          </div>
+          {/* Functional Photo Gallery with Lightbox */}
+          <PhotoGallery
+            photos={samplePhotos}
+            columns={3}
+            aspectRatio="video"
+            showCategories={true}
+            lazyLoad={true}
+          />
         </div>
       </section>
 
@@ -203,45 +294,8 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Calendar */}
-          <div className="bg-white rounded-2xl p-8 border border-gray-200">
-            <div className="flex justify-between items-center mb-8">
-              <h3 className="text-2xl font-bold">August 2025</h3>
-              <div className="flex gap-4">
-                <button className="bg-gray-100 border-none p-2 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
-                  ◀
-                </button>
-                <button className="bg-gray-100 border-none p-2 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
-                  ▶
-                </button>
-              </div>
-            </div>
-
-            {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-2 text-center">
-              {/* Day Headers */}
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="font-bold p-4 text-gray-600">
-                  {day}
-                </div>
-              ))}
-              
-              {/* Calendar Days */}
-              {Array.from({length: 31}, (_, i) => i + 1).map(day => {
-                const status = day === 22 || day === 29 ? 'booked' : day === 25 ? 'pending' : 'open';
-                const bgClass = status === 'booked' ? 'bg-red-100 text-red-700' : 
-                               status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
-                               'bg-green-100 text-green-700';
-                const cursorClass = status === 'open' ? 'cursor-pointer hover:bg-green-200' : 'cursor-default';
-                
-                return (
-                  <div key={day} className={`p-4 rounded-lg font-bold transition-colors ${bgClass} ${cursorClass}`}>
-                    {day}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          {/* Functional Calendar */}
+          <CalendarSection />
         </div>
       </section>
 
@@ -356,54 +410,19 @@ export default function HomePage() {
       <section id="testimonials" className="py-20 bg-brand-light-gray">
         <div className="max-w-7xl mx-auto px-8">
           <h2 className="text-4xl font-bold mb-4 text-brand-charcoal">
-            Testimonials
+            Video Testimonials
           </h2>
           <p className="text-lg text-gray-600 mb-12">
-            Context helps you compare apples to apples.
+            Hear directly from our clients about their experiences with Dapper Squad Entertainment.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Testimonial 1 */}
-            <div className="bg-white p-8 rounded-2xl border border-gray-200">
-              <div className="text-yellow-500 text-xl mb-4">
-                ★★★★★
-              </div>
-              <h4 className="font-bold mb-2">
-                Maya & Andre • Wedding • Milwaukee • Jun 2025
-              </h4>
-              <p className="text-gray-600 italic">
-                "They nailed the timeline and kept the floor full."
-              </p>
-            </div>
+          <VideoTestimonials
+            testimonials={sampleVideoTestimonials}
+            columns={3}
+            className="mb-12"
+          />
 
-            {/* Testimonial 2 */}
-            <div className="bg-white p-8 rounded-2xl border border-gray-200">
-              <div className="text-yellow-500 text-xl mb-4">
-                ★★★★★
-              </div>
-              <h4 className="font-bold mb-2">
-                Vantage Labs • Corporate • Chicago • Mar 2025
-              </h4>
-              <p className="text-gray-600 italic">
-                "Our team actually sang karaoke—effortless."
-              </p>
-            </div>
-
-            {/* Testimonial 3 */}
-            <div className="bg-white p-8 rounded-2xl border border-gray-200">
-              <div className="text-yellow-500 text-xl mb-4">
-                ★★★★★
-              </div>
-              <h4 className="font-bold mb-2">
-                North Shore Prep • School • Evanston • Sep 2024
-              </h4>
-              <p className="text-gray-600 italic">
-                "Professional, responsive, photos in days."
-              </p>
-            </div>
-          </div>
-
-          <div className="text-center mt-12">
+          <div className="text-center">
             <div className="text-xl font-bold mb-4">
               5.0 ★★★★★ Avg. Rating
             </div>
@@ -506,6 +525,42 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Social Media Integration */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4 text-brand-charcoal">
+              Connect With Us
+            </h2>
+            <p className="text-lg text-gray-600">
+              Follow our work, share your experience, and stay connected with the Dapper Squad community.
+            </p>
+          </div>
+
+          <SocialMediaIntegration
+            showShareButtons
+            showInstagramFeed
+            showSocialProof
+            showFollowButtons
+            shareConfig={{
+              url: 'https://dappersquad.com',
+              title: 'Check out Dapper Squad Entertainment - Professional DJ, Karaoke & Photography!',
+              description: 'Chicago-Milwaukee area\'s premier entertainment service for weddings, corporate events, and parties.',
+            }}
+            instagramConfig={{
+              maxPosts: 6,
+              columns: 3,
+              showStats: true,
+            }}
+            socialHandles={{
+              instagram: '@dappersquad',
+              facebook: 'dappersquadentertainment',
+              tiktok: '@dappersquadent',
+            }}
+          />
         </div>
       </section>
 
