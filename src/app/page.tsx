@@ -1,7 +1,12 @@
+'use client';
+
+import { useState } from 'react';
 import { CalendarSection } from '@/components/ui/calendar-section';
 import { PhotoGallery } from '@/components/ui/photo-gallery';
 import { VideoTestimonials } from '@/components/ui/video-testimonials';
 import { SocialMediaIntegration } from '@/components/ui/social-media-integration';
+import { HeroButtons } from '@/components/ui/hero-buttons';
+import { MultiStepBookingForm } from '@/components/forms/MultiStepBookingForm';
 
 // Sample photos for the gallery
 const samplePhotos = [
@@ -90,6 +95,18 @@ const sampleVideoTestimonials = [
 ];
 
 export default function HomePage() {
+  const [showBookingForm, setShowBookingForm] = useState(false);
+
+  const handleBookingComplete = async (_formData: any) => {
+    // TODO: Send to API
+    alert('Booking request submitted successfully! We\'ll contact you within 24-48 hours.');
+    setShowBookingForm(false);
+  };
+
+  const handleShowBookingForm = () => {
+    setShowBookingForm(true);
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
       {/* Navigation Header */}
@@ -110,10 +127,16 @@ export default function HomePage() {
             <a href="#testimonials" className="text-brand-charcoal hover:text-brand-gold transition-colors font-medium">Testimonials</a>
             <a href="#faq" className="text-brand-charcoal hover:text-brand-gold transition-colors font-medium">FAQ</a>
             <a href="#contact" className="text-brand-charcoal hover:text-brand-gold transition-colors font-medium">Contact</a>
-            <button className="bg-brand-gold text-brand-charcoal px-4 py-2 rounded-lg font-semibold hover:bg-brand-dark-gold transition-colors mr-2">
+            <button 
+              onClick={() => document.querySelector('#availability')?.scrollIntoView({ behavior: 'smooth' })}
+              className="bg-brand-gold text-brand-charcoal px-4 py-2 rounded-lg font-semibold hover:bg-brand-dark-gold transition-colors mr-2"
+            >
               Check Availability
             </button>
-            <button className="bg-brand-charcoal text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors">
+            <button 
+              onClick={handleShowBookingForm}
+              className="bg-brand-charcoal text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
+            >
               Request Your Date
             </button>
           </div>
@@ -141,14 +164,7 @@ export default function HomePage() {
             <p className="text-xl mb-8 opacity-90 leading-relaxed">
               Full-service DJ, karaoke, and event photography for Chicago–Milwaukee events. Flat pricing, fast booking, great vibes.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <button className="bg-white text-brand-charcoal px-8 py-4 text-lg font-semibold rounded-lg hover:bg-gray-100 transition-colors">
-                Request Your Date
-              </button>
-              <button className="bg-transparent text-white border-2 border-white px-8 py-4 text-lg font-semibold rounded-lg hover:bg-white hover:text-brand-charcoal transition-colors">
-                Check Availability
-              </button>
-            </div>
+            <HeroButtons onRequestDate={handleShowBookingForm} />
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-8 mt-12">
@@ -301,7 +317,7 @@ export default function HomePage() {
 
       {/* Request Form */}
       <section id="request" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-8">
+        <div className="max-w-7xl mx-auto px-8 text-center">
           <h2 className="text-4xl font-bold mb-4 text-brand-charcoal">
             Request Your Date
           </h2>
@@ -309,100 +325,16 @@ export default function HomePage() {
             No payment due with request. We confirm availability and reply via email.
           </p>
 
-          <div className="bg-brand-light-gray rounded-2xl p-12 max-w-2xl">
-            <form className="space-y-6">
-              <div>
-                <label className="block font-bold mb-2">Full name</label>
-                <input
-                  type="text"
-                  placeholder="Taylor Jordan"
-                  className="w-full p-4 rounded-lg border border-gray-300 text-base focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 outline-none transition-all"
-                />
-              </div>
+          <button 
+            onClick={handleShowBookingForm}
+            className="bg-brand-gold text-brand-charcoal px-12 py-6 text-xl font-bold rounded-lg hover:bg-brand-dark-gold transition-colors"
+          >
+            Start Your Booking Request
+          </button>
 
-              <div>
-                <label className="block font-bold mb-2">Email</label>
-                <input
-                  type="email"
-                  placeholder="taylor@example.com"
-                  className="w-full p-4 rounded-lg border border-gray-300 text-base focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 outline-none transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold mb-2">Phone (numbers only)</label>
-                <input
-                  type="tel"
-                  placeholder="3125551234"
-                  className="w-full p-4 rounded-lg border border-gray-300 text-base focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 outline-none transition-all"
-                />
-                <p className="text-sm text-gray-600 mt-2">
-                  Numbers only, 10–15 digits.
-                </p>
-              </div>
-
-              <div>
-                <label className="block font-bold mb-2">Event date</label>
-                <input
-                  type="date"
-                  className="w-full p-4 rounded-lg border border-gray-300 text-base focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 outline-none transition-all"
-                />
-                <p className="text-sm text-gray-600 mt-2">
-                  Future dates only.
-                </p>
-              </div>
-
-              <div>
-                <label className="block font-bold mb-2">Event type</label>
-                <select className="w-full p-4 rounded-lg border border-gray-300 text-base focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 outline-none transition-all">
-                  <option>Select...</option>
-                  <option>Wedding</option>
-                  <option>Corporate Event</option>
-                  <option>Birthday Party</option>
-                  <option>Anniversary</option>
-                  <option>Other</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-bold mb-2">City / Venue</label>
-                <input
-                  type="text"
-                  placeholder="Mount Prospect — Rob Roy GC"
-                  className="w-full p-4 rounded-lg border border-gray-300 text-base focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 outline-none transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold mb-2">Services needed</label>
-                <select className="w-full p-4 rounded-lg border border-gray-300 text-base focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 outline-none transition-all">
-                  <option>Select...</option>
-                  <option>DJ Services</option>
-                  <option>Karaoke</option>
-                  <option>Event Photography</option>
-                  <option>DJ + Karaoke</option>
-                  <option>Full Package</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-bold mb-2">Notes</label>
-                <textarea
-                  rows={4}
-                  placeholder="Vibe, timing, special songs, power limits, etc."
-                  className="w-full p-4 rounded-lg border border-gray-300 text-base resize-y focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 outline-none transition-all"
-                />
-              </div>
-
-              <p className="text-sm text-gray-600">
-                We'll only use your info to reply about your event. No spam, ever.
-              </p>
-
-              <button className="bg-brand-gold text-brand-charcoal w-full py-4 text-lg font-bold rounded-lg hover:bg-brand-dark-gold transition-colors">
-                Submit request — No payment due
-              </button>
-            </form>
-          </div>
+          <p className="text-sm text-gray-600 mt-6">
+            Our step-by-step form makes it easy to tell us about your event
+          </p>
         </div>
       </section>
 
@@ -620,6 +552,29 @@ export default function HomePage() {
           </p>
         </div>
       </footer>
+
+      {/* Booking Form Modal */}
+      {showBookingForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-brand-charcoal">Book Your Event</h2>
+                <button
+                  onClick={() => setShowBookingForm(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+              <MultiStepBookingForm
+                onComplete={handleBookingComplete}
+                onCancel={() => setShowBookingForm(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
