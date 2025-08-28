@@ -33,7 +33,6 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
       throw new Error('Email service not configured');
     }
     
-    console.log('✅ Resend API key found:', process.env.RESEND_API_KEY?.substring(0, 10) + '...');
 
     // Validate email before sending
     if (!isValidEmail(data.clientEmail)) {
@@ -50,10 +49,6 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
     // In development, use verified email for testing
     const recipientEmail = IS_DEVELOPMENT ? VERIFIED_EMAIL : data.clientEmail;
     
-    console.log('📧 Attempting to send booking confirmation email');
-    console.log('📧 Original recipient:', data.clientEmail);
-    console.log('📧 Actual recipient (dev mode):', recipientEmail);
-    console.log('📧 From email:', FROM_EMAIL);
 
     const { data: emailData, error } = await resend.emails.send({
       from: FROM_EMAIL,
@@ -115,7 +110,6 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
       throw new Error('Failed to send booking confirmation: No response data');
     }
 
-    console.log('✅ Booking confirmation email sent successfully:', emailData.id);
     
     return {
       success: true,
@@ -133,7 +127,6 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
 
 export async function sendAdminNotification(data: BookingEmailData) {
   try {
-    console.log('📧 Attempting to send admin notification email to:', ADMIN_EMAIL);
     
     const { data: emailData, error } = await resend.emails.send({
       from: FROM_EMAIL,
@@ -184,7 +177,6 @@ export async function sendAdminNotification(data: BookingEmailData) {
       throw new Error('Failed to send admin notification: No response data');
     }
 
-    console.log('✅ Admin notification email sent successfully:', emailData.id);
     
     return {
       success: true,
