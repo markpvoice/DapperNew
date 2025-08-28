@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { verifyAuth } from '@/lib/auth';
 import { createBooking, getBookingsByDateRange } from '@/lib/database';
+import { sendBookingConfirmation, sendAdminNotification, type BookingEmailData } from '@/lib/email';
 
 // Validation schema for creating bookings
 const createBookingSchema = z.object({
@@ -159,6 +160,43 @@ export async function POST(request: NextRequest) {
         { success: false, error: result.error },
         { status: 400 }
       );
+    }
+
+    const booking = result.booking!;
+
+    // Send confirmation emails (but don't fail the booking if emails fail)
+    try {
+      // Prepare email data
+      const emailData: BookingEmailData = {
+        clientName: booking.clientName,
+        clientEmail: booking.clientEmail,
+        bookingReference: booking.bookingReference,
+        eventDate: booking.eventDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        eventType: booking.eventType,
+        services: booking.servicesNeeded,
+        venueName: booking.venueName || undefined,
+        venueAddress: booking.venueAddress || undefined,
+        totalAmount: booking.totalAmount ? Number(booking.totalAmount) : undefined,
+        depositAmount: booking.depositAmount ? Number(booking.depositAmount) : undefined,
+      };
+
+      // Send customer confirmation email
+      const customerEmailResult = await sendBookingConfirmation(emailData);
+      if (customerEmailResult.success) {
+        console.log('✅ Customer confirmation email sent:', customerEmailResult.emailId);
+      } else {
+        console.error('❌ Failed to send customer confirmation:', customerEmailResult.error);
+      }
+
+      // Send admin notification email
+      const adminEmailResult = await sendAdminNotification(emailData);
+      if (adminEmailResult.success) {
+        console.log('✅ Admin notification email sent:', adminEmailResult.emailId);
+      } else {
+        console.error('❌ Failed to send admin notification:', adminEmailResult.error);
+      }
+    } catch (emailError) {
+      console.error('❌ Email sending error (booking still created):', emailError);
     }
 
     return NextResponse.json({

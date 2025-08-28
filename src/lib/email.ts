@@ -3,8 +3,13 @@ import { isValidEmail } from './utils';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'bookings@dappersquad.com';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@dappersquad.com';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'markphillips.voice@gmail.com';
+
+// In development/testing, Resend only allows sending to verified email addresses
+// We'll use the verified email for testing but show the original recipient in logs
+const VERIFIED_EMAIL = 'markphillips.voice@gmail.com';
+const IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
 
 export interface BookingEmailData {
   clientName: string;
@@ -22,6 +27,14 @@ export interface BookingEmailData {
 
 export async function sendBookingConfirmation(data: BookingEmailData) {
   try {
+    // Debug API key availability
+    if (!process.env.RESEND_API_KEY) {
+      console.error('❌ RESEND_API_KEY is not set');
+      throw new Error('Email service not configured');
+    }
+    
+    console.log('✅ Resend API key found:', process.env.RESEND_API_KEY?.substring(0, 10) + '...');
+
     // Validate email before sending
     if (!isValidEmail(data.clientEmail)) {
       throw new Error('Invalid client email address');
@@ -34,9 +47,17 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
 
     const calendarLink = generateCalendarLink(data);
 
+    // In development, use verified email for testing
+    const recipientEmail = IS_DEVELOPMENT ? VERIFIED_EMAIL : data.clientEmail;
+    
+    console.log('📧 Attempting to send booking confirmation email');
+    console.log('📧 Original recipient:', data.clientEmail);
+    console.log('📧 Actual recipient (dev mode):', recipientEmail);
+    console.log('📧 From email:', FROM_EMAIL);
+
     const { data: emailData, error } = await resend.emails.send({
       from: FROM_EMAIL,
-      to: [data.clientEmail],
+      to: [recipientEmail],
       subject: `Booking Confirmed - ${data.bookingReference} | Dapper Squad Entertainment`,
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
@@ -45,6 +66,7 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
           </div>
           
           <div style="padding: 30px 20px;">
+            ${IS_DEVELOPMENT ? '<div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin-bottom: 20px; border-radius: 5px;"><strong>Development Mode:</strong> This email was sent to ' + VERIFIED_EMAIL + ' but would normally go to ' + data.clientEmail + '</div>' : ''}
             <h2 style="color: #2C2C2C;">Booking Confirmed!</h2>
             
             <p>Hi ${data.clientName},</p>
@@ -84,12 +106,20 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
     });
 
     if (error) {
-      throw new Error(`Failed to send booking confirmation: ${error.message}`);
+      console.error('❌ Resend API error:', error);
+      throw new Error(`Failed to send booking confirmation: ${error.message || 'Unknown error'}`);
     }
 
+    if (!emailData) {
+      console.error('❌ No email data returned from Resend');
+      throw new Error('Failed to send booking confirmation: No response data');
+    }
+
+    console.log('✅ Booking confirmation email sent successfully:', emailData.id);
+    
     return {
       success: true,
-      emailId: emailData?.id,
+      emailId: emailData.id,
       message: 'Booking confirmation sent successfully',
     };
   } catch (error) {
@@ -103,6 +133,8 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
 
 export async function sendAdminNotification(data: BookingEmailData) {
   try {
+    console.log('📧 Attempting to send admin notification email to:', ADMIN_EMAIL);
+    
     const { data: emailData, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: [ADMIN_EMAIL],
@@ -143,12 +175,20 @@ export async function sendAdminNotification(data: BookingEmailData) {
     });
 
     if (error) {
-      throw new Error(`Failed to send admin notification: ${error.message}`);
+      console.error('❌ Admin notification error:', error);
+      throw new Error(`Failed to send admin notification: ${error.message || 'Unknown error'}`);
     }
 
+    if (!emailData) {
+      console.error('❌ No email data returned for admin notification');
+      throw new Error('Failed to send admin notification: No response data');
+    }
+
+    console.log('✅ Admin notification email sent successfully:', emailData.id);
+    
     return {
       success: true,
-      emailId: emailData?.id,
+      emailId: emailData.id,
       message: 'Admin notification sent successfully',
     };
   } catch (error) {
