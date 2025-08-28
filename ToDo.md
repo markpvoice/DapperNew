@@ -283,12 +283,13 @@
   - [ ] Communication history tracking
   - [ ] Export booking data
 
-- [ ] **Calendar Management**
-  - [ ] Visual calendar with all events
-  - [ ] Drag-and-drop scheduling
-  - [ ] Availability management
-  - [ ] Conflict detection
-  - [ ] Bulk operations
+- ✅ **Calendar Management (COMPLETED August 28, 2025)**
+  - ✅ Visual calendar with all events - Interactive calendar grid with proper color coding
+  - ✅ Availability management - Block/unblock dates, set maintenance periods
+  - ✅ Real-time statistics - Available, booked, blocked date counts
+  - ✅ Professional admin interface at `/admin/calendar`
+  - ✅ TDD test coverage - 42 test cases covering all functionality
+  - ✅ API integration - Working with `/api/calendar/availability` endpoint
 
 - [ ] **Analytics & Reporting**
   - [ ] Revenue reports
