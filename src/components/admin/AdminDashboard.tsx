@@ -181,6 +181,14 @@ export function AdminDashboard({ className = '' }: AdminDashboardProps) {
             <p className="text-3xl font-bold text-blue-600">
               ${(stats?.thisMonthRevenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
+            <div className="flex items-center mt-2">
+              <span className={`text-sm font-medium ${
+                (stats?.revenueGrowth || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {(stats?.revenueGrowth || 0) >= 0 ? '↗' : '↘'} {Math.abs(stats?.revenueGrowth || 0).toFixed(1)}%
+              </span>
+              <span className="text-sm text-gray-500 ml-2">vs last month</span>
+            </div>
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
@@ -188,6 +196,57 @@ export function AdminDashboard({ className = '' }: AdminDashboardProps) {
             <p className="text-3xl font-bold text-purple-600">
               ${(stats?.averageBookingValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
+          </div>
+        </div>
+
+        {/* Monthly Comparison Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Booking Trends</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">This Month</span>
+                <span className="text-lg font-semibold text-gray-900">{stats?.thisMonthBookings || 0}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Last Month</span>
+                <span className="text-lg font-semibold text-gray-900">{stats?.lastMonthBookings || 0}</span>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t">
+                <span className="text-sm font-medium text-gray-600">Growth</span>
+                <span className={`text-sm font-bold ${
+                  (stats?.bookingGrowth || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {(stats?.bookingGrowth || 0) >= 0 ? '+' : ''}{(stats?.bookingGrowth || 0).toFixed(1)}%
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Revenue Analytics</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Revenue Growth</span>
+                <span className={`text-lg font-bold ${
+                  (stats?.revenueGrowth || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {(stats?.revenueGrowth || 0) >= 0 ? '+' : ''}{(stats?.revenueGrowth || 0).toFixed(1)}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Bookings per Month</span>
+                <span className="text-lg font-semibold text-gray-900">
+                  {((stats?.thisMonthBookings || 0) / new Date().getDate() * 30).toFixed(0)} projected
+                </span>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t">
+                <span className="text-sm font-medium text-gray-600">Revenue per Booking</span>
+                <span className="text-sm font-bold text-purple-600">
+                  ${(stats?.averageBookingValue || 0).toFixed(0)}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
