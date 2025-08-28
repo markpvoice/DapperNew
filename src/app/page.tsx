@@ -238,14 +238,18 @@ export default function HomePage() {
             A quick peek at the fun we bring to every party.
           </p>
 
-          {/* Functional Photo Gallery with Lightbox */}
-          <PhotoGallery
-            photos={samplePhotos}
-            columns={3}
-            aspectRatio="video"
-            showCategories={true}
-            lazyLoad={true}
-          />
+          {/* Functional Photo Gallery with Lightbox - Temporarily disabled */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-gray-200 rounded-lg aspect-video flex items-center justify-center">
+              <span className="text-gray-500">DJ Services Gallery</span>
+            </div>
+            <div className="bg-gray-200 rounded-lg aspect-video flex items-center justify-center">
+              <span className="text-gray-500">Karaoke Events Gallery</span>
+            </div>
+            <div className="bg-gray-200 rounded-lg aspect-video flex items-center justify-center">
+              <span className="text-gray-500">Photography Portfolio</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -360,11 +364,37 @@ export default function HomePage() {
             Hear directly from our clients about their experiences with Dapper Squad Entertainment.
           </p>
 
-          <VideoTestimonials
-            testimonials={sampleVideoTestimonials}
-            columns={3}
-            className="mb-12"
-          />
+          {/* Video Testimonials - Temporarily disabled */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <div className="bg-gray-100 rounded-lg p-6 border border-gray-200">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-gray-500">
+                  MA
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-bold text-gray-800">Maya & Andre</h4>
+                  <p className="text-sm text-gray-600">Wedding Reception</p>
+                </div>
+              </div>
+              <p className="text-gray-700">
+                "The Dapper Squad made our wedding reception absolutely magical! Professional service and incredible energy."
+              </p>
+            </div>
+            <div className="bg-gray-100 rounded-lg p-6 border border-gray-200">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-gray-500">
+                  VL
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-bold text-gray-800">Vantage Labs</h4>
+                  <p className="text-sm text-gray-600">Corporate Event</p>
+                </div>
+              </div>
+              <p className="text-gray-700">
+                "Outstanding karaoke setup for our team building event. Everyone had a blast!"
+              </p>
+            </div>
+          </div>
 
           <div className="text-center">
             <div className="text-xl font-bold mb-4">
@@ -484,27 +514,18 @@ export default function HomePage() {
             </p>
           </div>
 
-          <SocialMediaIntegration
-            showShareButtons
-            showInstagramFeed
-            showSocialProof
-            showFollowButtons
-            shareConfig={{
-              url: 'https://dappersquad.com',
-              title: 'Check out Dapper Squad Entertainment - Professional DJ, Karaoke & Photography!',
-              description: 'Chicago-Milwaukee area\'s premier entertainment service for weddings, corporate events, and parties.',
-            }}
-            instagramConfig={{
-              maxPosts: 6,
-              columns: 3,
-              showStats: true,
-            }}
-            socialHandles={{
-              instagram: '@dappersquad',
-              facebook: 'dappersquadentertainment',
-              tiktok: '@dappersquadent',
-            }}
-          />
+          {/* Social Media Integration - Temporarily disabled */}
+          <div className="text-center py-8">
+            <h3 className="text-2xl font-bold mb-4 text-brand-charcoal">Follow Us</h3>
+            <div className="flex justify-center space-x-4">
+              <a href="https://instagram.com/dappersquad" className="text-brand-gold hover:text-brand-dark-gold">
+                Instagram @dappersquad
+              </a>
+              <a href="https://facebook.com/dappersquadentertainment" className="text-brand-gold hover:text-brand-dark-gold">
+                Facebook
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
