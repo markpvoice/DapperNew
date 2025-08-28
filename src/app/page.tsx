@@ -96,15 +96,27 @@ const sampleVideoTestimonials = [
 
 export default function HomePage() {
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [bookingInitialData, setBookingInitialData] = useState<Partial<any>>({});
 
   const handleBookingComplete = async (_formData: any) => {
-    // TODO: Send to API
-    alert('Booking request submitted successfully! We\'ll contact you within 24-48 hours.');
-    setShowBookingForm(false);
+    // Form submission is now handled within the MultiStepBookingForm
+    // This will be called after successful API submission
+    setTimeout(() => {
+      setShowBookingForm(false);
+      setBookingInitialData({});
+    }, 3000); // Keep form open for 3 seconds to show success message
   };
 
-  const handleShowBookingForm = () => {
+  const handleShowBookingForm = (initialData?: any) => {
+    if (initialData) {
+      setBookingInitialData(initialData);
+    }
     setShowBookingForm(true);
+  };
+
+  const handleCalendarDateSelect = (date: string) => {
+    // Pre-fill the form with the selected date and open it
+    handleShowBookingForm({ eventDate: date });
   };
 
   return (
@@ -311,7 +323,7 @@ export default function HomePage() {
           </div>
 
           {/* Functional Calendar */}
-          <CalendarSection />
+          <CalendarSection onDateSelect={handleCalendarDateSelect} />
         </div>
       </section>
 
@@ -570,6 +582,7 @@ export default function HomePage() {
               <MultiStepBookingForm
                 onComplete={handleBookingComplete}
                 onCancel={() => setShowBookingForm(false)}
+                initialData={bookingInitialData}
               />
             </div>
           </div>

@@ -2,6 +2,8 @@
 
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
+import { createBooking, type CreateBookingData } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 // Types
 interface Service {
@@ -29,9 +31,17 @@ interface BookingFormData {
   clientPhone?: string;
 }
 
+interface BookingState {
+  isSubmitting: boolean;
+  isCompleted: boolean;
+  bookingReference?: string;
+  error?: string;
+}
+
 interface MultiStepBookingFormProps {
   onComplete: (_data: BookingFormData) => void;
   onCancel: () => void;
+  initialData?: Partial<BookingFormData>;
 }
 
 const SERVICES: Service[] = [
@@ -63,12 +73,68 @@ const STEPS = [
   'Review & Confirm'
 ];
 
-export function MultiStepBookingForm({ onComplete, onCancel }: MultiStepBookingFormProps) {
+export function MultiStepBookingForm({ onComplete, onCancel, initialData }: MultiStepBookingFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<BookingFormData>({
-    services: []
+    services: [],
+    ...initialData
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [bookingState, setBookingState] = useState<BookingState>({
+    isSubmitting: false,
+    isCompleted: false
+  });
+  const { toast } = useToast();
+  
+  // Auto-save form data to localStorage
+  React.useEffect(() => {
+    const savedData = localStorage.getItem('dapper-squad-booking-draft');
+    if (savedData && !initialData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        // Only load if it's a valid object with expected properties
+        if (parsedData && typeof parsedData === 'object' && !Array.isArray(parsedData)) {
+          setFormData(prev => ({ 
+            ...prev, 
+            ...parsedData,
+            services: Array.isArray(parsedData.services) ? parsedData.services : []
+          }));
+        }
+      } catch (error) {
+        console.warn('Failed to load saved booking data:', error);
+        // Clear corrupted data
+        localStorage.removeItem('dapper-squad-booking-draft');
+      }
+    }
+  }, [initialData]);
+
+  // Save form data whenever it changes (but not when completed)
+  React.useEffect(() => {
+    if (!bookingState.isCompleted) {
+      try {
+        // Create a clean copy without any potential circular references
+        const cleanFormData = {
+          services: formData.services || [],
+          eventDate: formData.eventDate,
+          eventTime: formData.eventTime,
+          eventEndTime: formData.eventEndTime,
+          eventType: formData.eventType,
+          venue: formData.venue,
+          venueAddress: formData.venueAddress,
+          guestCount: formData.guestCount,
+          specialRequests: formData.specialRequests,
+          clientName: formData.clientName,
+          clientEmail: formData.clientEmail,
+          clientPhone: formData.clientPhone,
+        };
+        localStorage.setItem('dapper-squad-booking-draft', JSON.stringify(cleanFormData));
+      } catch (error) {
+        console.warn('Failed to save booking data to localStorage:', error);
+      }
+    } else {
+      localStorage.removeItem('dapper-squad-booking-draft');
+    }
+  }, [formData, bookingState.isCompleted]);
 
   const updateFormData = useCallback((updates: Partial<BookingFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }));
@@ -134,6 +200,7 @@ export function MultiStepBookingForm({ onComplete, onCancel }: MultiStepBookingF
       : [...currentServices, serviceId];
     
     updateFormData({ services: updatedServices });
+    setErrors(prev => ({ ...prev, services: '' })); // Clear service selection error
   }, [formData.services, updateFormData]);
 
   const calculateTotalPrice = useCallback(() => {
@@ -144,16 +211,71 @@ export function MultiStepBookingForm({ onComplete, onCancel }: MultiStepBookingF
   }, [formData.services]);
 
   const handleSubmit = useCallback(async () => {
-    if (validateStep(currentStep)) {
-      try {
-        // In real implementation, this would call the API
-        await onComplete(formData);
-      } catch (error) {
-        console.error('Booking submission failed:', error);
-        setErrors({ submit: 'Failed to submit booking. Please try again.' });
-      }
+    if (!validateStep(currentStep)) {
+      return;
     }
-  }, [currentStep, formData, onComplete, validateStep]);
+
+    setBookingState(prev => ({ ...prev, isSubmitting: true, error: undefined }));
+    setErrors({});
+
+    try {
+      // Transform form data to API format with clean data
+      const bookingData: CreateBookingData = {
+        clientName: String(formData.clientName || '').trim(),
+        clientEmail: String(formData.clientEmail || '').trim(),
+        clientPhone: String(formData.clientPhone || '').trim(),
+        eventDate: String(formData.eventDate || ''),
+        eventTime: formData.eventTime ? String(formData.eventTime) : undefined,
+        eventEndTime: formData.eventEndTime ? String(formData.eventEndTime) : undefined,
+        eventType: String(formData.eventType || ''),
+        services: Array.isArray(formData.services) ? [...formData.services] : [],
+        venue: String(formData.venue || '').trim(),
+        venueAddress: formData.venueAddress ? String(formData.venueAddress).trim() : undefined,
+        guestCount: formData.guestCount ? Number(formData.guestCount) : undefined,
+        specialRequests: formData.specialRequests ? String(formData.specialRequests).trim() : undefined
+      };
+
+      // Call the API
+      const result = await createBooking(bookingData);
+
+      if (result.success) {
+        setBookingState({
+          isSubmitting: false,
+          isCompleted: true,
+          bookingReference: result.bookingId
+        });
+
+        toast({
+          title: "Booking Request Submitted!",
+          description: "We'll contact you within 24-48 hours to confirm your booking.",
+          duration: 5000,
+        });
+
+        // Call parent completion handler
+        await onComplete(formData);
+      } else {
+        throw new Error(result.error || 'Unknown error occurred');
+      }
+    } catch (error) {
+      console.error('Booking submission failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit booking. Please try again.';
+      
+      setBookingState(prev => ({
+        ...prev,
+        isSubmitting: false,
+        error: errorMessage
+      }));
+
+      setErrors({ submit: errorMessage });
+
+      toast({
+        title: "Booking Submission Failed",
+        description: errorMessage,
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  }, [currentStep, formData, onComplete, validateStep, toast]);
 
   const renderStep = () => {
     switch (currentStep) {

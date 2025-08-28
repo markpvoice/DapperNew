@@ -2,15 +2,20 @@
 
 import { Calendar } from '@/components/ui/calendar';
 
-export function CalendarSection() {
+interface CalendarSectionProps {
+  onDateSelect?: (_date: string) => void;
+}
+
+export function CalendarSection({ onDateSelect }: CalendarSectionProps) {
   const handleDateSelect = (date: string) => {
-    // Scroll to booking form and prefill the date
-    const form = document.querySelector('#request');
-    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
-    if (dateInput) {
-      dateInput.value = date;
+    if (onDateSelect) {
+      // Use the parent's date select handler (opens booking form with pre-filled date)
+      onDateSelect(date);
+    } else {
+      // Fallback: Scroll to booking form section
+      const form = document.querySelector('#request');
+      form?.scrollIntoView({ behavior: 'smooth' });
     }
-    form?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return <Calendar onDateSelect={handleDateSelect} />;
