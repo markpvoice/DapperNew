@@ -351,18 +351,28 @@ describe('Database Operations', () => {
     it('should delete booking successfully', async () => {
       // Arrange
       const bookingId = 'booking-123';
-      const mockDeletedBooking = { id: bookingId };
+      mockPrisma.booking.findUnique.mockResolvedValue({ 
+        id: bookingId, 
+        status: 'PENDING',
+        eventDate: new Date('2025-09-15')
+      });
 
-      mockPrisma.booking.delete.mockResolvedValue(mockDeletedBooking);
+      // Mock transaction for the updated delete function
+      const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+        return await callback({
+          calendarAvailability: { updateMany: jest.fn() },
+          booking: { delete: jest.fn().mockResolvedValue({ id: bookingId }) },
+        });
+      });
+
+      mockPrisma.$transaction = mockTransaction;
 
       // Act
       const result = await deleteBooking(bookingId);
 
       // Assert
       expect(result.success).toBe(true);
-      expect(mockPrisma.booking.delete).toHaveBeenCalledWith({
-        where: { id: bookingId },
-      });
+      expect(mockTransaction).toHaveBeenCalledTimes(1);
     });
 
     it('should handle deletion of non-existent booking', async () => {
@@ -393,6 +403,59 @@ describe('Database Operations', () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain('Cannot delete confirmed booking');
       expect(mockPrisma.booking.delete).not.toHaveBeenCalled();
+    });
+
+    it('should cleanup calendar availability when deleting booking', async () => {
+      // Arrange
+      const bookingId = 'booking-123';
+      mockPrisma.booking.findUnique.mockResolvedValue({ 
+        id: bookingId, 
+        status: 'PENDING',
+        eventDate: new Date('2025-09-15')
+      });
+
+      // Mock transaction
+      const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+        return await callback({
+          calendarAvailability: {
+            updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+          },
+          booking: {
+            delete: jest.fn().mockResolvedValue({ id: bookingId }),
+          },
+        });
+      });
+
+      mockPrisma.$transaction = mockTransaction;
+
+      // Act
+      const result = await deleteBooking(bookingId);
+
+      // Assert
+      expect(result.success).toBe(true);
+      expect(mockTransaction).toHaveBeenCalledTimes(1);
+      
+      // Verify the transaction callback was called with correct operations
+      const transactionCallback = mockTransaction.mock.calls[0][0];
+      const mockTx = {
+        calendarAvailability: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
+        booking: { delete: jest.fn().mockResolvedValue({ id: bookingId }) }
+      };
+      
+      await transactionCallback(mockTx);
+      
+      expect(mockTx.calendarAvailability.updateMany).toHaveBeenCalledWith({
+        where: { bookingId: bookingId },
+        data: {
+          isAvailable: true,
+          bookingId: null,
+          blockedReason: null,
+        },
+      });
+      
+      expect(mockTx.booking.delete).toHaveBeenCalledWith({
+        where: { id: bookingId },
+      });
     });
   });
 

@@ -185,7 +185,7 @@ export async function getBookingsByDateRange(startDate: Date, endDate: Date): Pr
       where: {
         eventDate: {
           gte: startDate,
-          lte: endDate,
+          lte: new Date(new Date(endDate).setHours(23, 59, 59, 999)),
         },
       },
       orderBy: {
@@ -212,14 +212,30 @@ export async function deleteBooking(bookingId: string): Promise<{ success: boole
       return { success: false, error: 'Record not found' };
     }
 
-    // Prevent deletion of confirmed bookings
+    // Prevent deletion of confirmed bookings - suggest proper workflow
     if (existingBooking.status === 'CONFIRMED' || existingBooking.status === 'IN_PROGRESS') {
-      return { success: false, error: 'Cannot delete confirmed booking' };
+      return { 
+        success: false, 
+        error: 'Cannot delete confirmed booking. Please cancel the booking first, then delete.' 
+      };
     }
 
-    // Delete the booking
-    await db.booking.delete({
-      where: { id: bookingId },
+    // Delete in transaction to ensure both tables are updated
+    await db.$transaction(async (tx) => {
+      // First update calendar availability to mark date as available
+      await tx.calendarAvailability.updateMany({
+        where: { bookingId: bookingId },
+        data: {
+          isAvailable: true,
+          bookingId: null,
+          blockedReason: null,
+        },
+      });
+
+      // Then delete the booking
+      await tx.booking.delete({
+        where: { id: bookingId },
+      });
     });
 
     return { success: true };

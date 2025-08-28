@@ -165,7 +165,41 @@ This project involves upgrading a single-page HTML demo website (2.6MB with base
   - ✅ **API Endpoints Verified**: Both booking creation and calendar availability APIs working perfectly
   - ✅ **TypeScript Compliance**: Full type safety throughout the booking flow
 
-### ✅ Latest Session Completions (August 28, 2025 - Complete Email Integration)
+### ✅ Latest Session Completions (August 28, 2025 - Admin Dashboard Date Filtering & Data Integrity Fixes)
+- **Complete Admin Dashboard Date Filtering Resolution**:
+  - ✅ **Fixed Date Picker UX Issues**: Resolved dateFrom parameter not being sent to API despite UI display
+    - **Problem**: Date inputs showed values but weren't captured in React state due to useEffect conflicts
+    - **Solution**: Proper default date initialization with today's date and end-of-month for dateTo
+    - **Result**: Date range filtering now works reliably with both dateFrom and dateTo parameters
+  - ✅ **Implemented Inclusive Date Filtering**: Records on the end date are now included in results
+    - **Issue**: 09/13/2025 records weren't retrieved when filtering to that date
+    - **Fix**: Updated `getBookingsByDateRange` to use end-of-day timestamp (`setHours(23, 59, 59, 999)`)
+    - **Verification**: Created test record for 09/13/2025 and confirmed proper retrieval
+  - ✅ **Fixed Timezone Display Bug**: Dates now display correctly without off-by-one-day errors
+    - **Root Cause**: JavaScript Date constructor with timezone conversion shifted display dates
+    - **Solution**: Direct string parsing avoiding timezone conversion (`dateStr.split('-')` → `${month}/${day}/${year}`)
+    - **Impact**: All event dates now display accurately in MM/DD/YYYY format
+
+- **Database Data Integrity & TDD Improvements**:
+  - ✅ **Fixed Booking Deletion Data Consistency**: Delete now properly cleans up both tables
+    - **Critical Bug Found**: Delete only removed booking record, leaving orphaned calendar availability entries
+    - **TDD Lesson**: This should have been caught with comprehensive multi-table testing
+    - **Solution**: Implemented transaction-based delete updating both `booking` and `calendar_availability` tables
+  - ✅ **Enhanced Delete UX**: Improved user workflow for confirmed bookings
+    - **Before**: Confusing "Cannot delete confirmed booking" error message
+    - **After**: Smart UI showing "Cancel" button for confirmed bookings, "Delete" for pending ones
+    - **Added**: Clear tooltips and confirmation dialogs explaining the difference
+  - ✅ **Added Enhanced TDD Guidelines**: Updated CLAUDE.md with comprehensive TDD practices
+    - **Data Integrity Checklist**: 7-point checklist for database operations testing
+    - **Real Example Documentation**: Documented the booking deletion bug as learning case
+    - **Transaction Testing**: Guidelines for testing multi-table operations and rollback scenarios
+
+- **UX Enhancements**:
+  - ✅ **Date Picker Auto-Close**: Added `e.target.blur()` to close calendar picker after selection
+  - ✅ **Database Cleanup & Reseed**: Fresh consistent data across booking and calendar tables
+  - ✅ **Error Message Improvements**: More helpful messaging guiding users to proper workflows
+
+### ✅ Previous Session (August 28, 2025 - Complete Email Integration)
 - **Complete Email Infrastructure Implementation**:
   - ✅ **Resend API Integration**: Successfully configured with API key (`re_HBmh54mz_...`)
     - **Sandbox Mode**: Configured for development testing with verified email address
@@ -1061,6 +1095,88 @@ npm run test          # Unit tests
 npm run test:watch    # Watch mode during development
 npm run test:e2e      # End-to-end tests
 npm run test:coverage # Code coverage reports
+```
+
+### 🔬 **Enhanced TDD Workflow for Data Operations**
+**CRITICAL: Always test data integrity and side effects**
+
+When implementing ANY database operation, ALWAYS write tests for:
+
+#### 1. **Primary Operation Tests**
+```typescript
+// Test the main functionality
+it('should create booking successfully', async () => {
+  // Arrange: Set up test data and mocks
+  // Act: Call the function
+  // Assert: Verify expected results
+});
+```
+
+#### 2. **Side Effects & Data Integrity Tests** 
+```typescript
+// Test ALL related table updates
+it('should update calendar availability when creating booking', async () => {
+  // Verify ALL tables affected by the operation
+});
+
+it('should cleanup related records when deleting', async () => {
+  // Verify orphaned records are prevented
+  // Test transaction rollback scenarios
+});
+```
+
+#### 3. **Edge Cases & Error Scenarios**
+```typescript
+// Test validation, constraints, and error handling
+it('should prevent invalid operations', async () => {
+  // Test business rules and constraints
+});
+
+it('should handle database errors gracefully', async () => {
+  // Test transaction failures and recovery
+});
+```
+
+#### 4. **Transaction & Consistency Tests**
+```typescript
+// Test atomic operations
+it('should handle transaction failures correctly', async () => {
+  // Mock transaction failure
+  // Verify no partial updates occur
+  // Ensure database remains consistent
+});
+```
+
+### 🚨 **TDD Lessons Learned**
+**Based on booking deletion bug discovered on Aug 28, 2025:**
+
+❌ **What went wrong**: Implemented `deleteBooking()` without testing calendar table cleanup
+✅ **What should have happened**: Written test for "delete should update both booking AND calendar tables" first
+
+**The bug**: Delete only removed booking record, leaving orphaned calendar availability entries
+**The lesson**: EVERY database operation that affects multiple tables MUST have comprehensive tests
+
+### 📋 **TDD Checklist for Database Operations**
+Before implementing ANY database function, write tests for:
+
+- [ ] **Primary operation succeeds**
+- [ ] **ALL related table updates** (foreign keys, references, etc.)
+- [ ] **Transaction integrity** (all-or-nothing operations)
+- [ ] **Error scenarios** (validation, constraints, network failures)
+- [ ] **Edge cases** (non-existent records, permission checks)
+- [ ] **Data consistency** (no orphaned records, proper relationships)
+- [ ] **Performance** (query efficiency, large datasets)
+
+### ⚡ **Fast TDD Commands**
+```bash
+# Start TDD session
+npm run test:watch              # Keep running during development
+
+# Test specific function being developed
+npm test -- --testPathPattern=database.test.ts --testNamePattern="deleteBooking"
+
+# Verify all tests pass before commit
+npm run test && npm run lint && npm run typecheck && npm run build
 ```
 
 ### 🔧 **Code Quality - ZERO TOLERANCE POLICY**

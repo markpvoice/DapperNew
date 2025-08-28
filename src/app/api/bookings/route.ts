@@ -183,7 +183,6 @@ export async function POST(request: NextRequest) {
       // Send customer confirmation email
       const customerEmailResult = await sendBookingConfirmation(emailData);
       if (customerEmailResult.success) {
-        console.log('✅ Customer confirmation email sent:', customerEmailResult.emailId);
       } else {
         console.error('❌ Failed to send customer confirmation:', customerEmailResult.error);
       }
@@ -191,7 +190,6 @@ export async function POST(request: NextRequest) {
       // Send admin notification email
       const adminEmailResult = await sendAdminNotification(emailData);
       if (adminEmailResult.success) {
-        console.log('✅ Admin notification email sent:', adminEmailResult.emailId);
       } else {
         console.error('❌ Failed to send admin notification:', adminEmailResult.error);
       }

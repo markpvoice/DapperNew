@@ -184,10 +184,10 @@ export const queryHelpers = {
     return db.booking.findMany({
       where: {
         ...(status && { status: status as any }),
-        ...(dateFrom && dateTo && {
+        ...((dateFrom || dateTo) && {
           eventDate: {
-            gte: dateFrom,
-            lte: dateTo,
+            ...(dateFrom && { gte: dateFrom }),
+            ...(dateTo && { lte: new Date(new Date(dateTo).setHours(23, 59, 59, 999)) }),
           },
         }),
       },
