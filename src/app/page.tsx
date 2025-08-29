@@ -2,14 +2,16 @@
 
 import { useState } from 'react';
 import { CalendarSection } from '@/components/ui/calendar-section';
-import { PhotoGallery } from '@/components/ui/photo-gallery';
-import { VideoTestimonials } from '@/components/ui/video-testimonials';
-import { SocialMediaIntegration } from '@/components/ui/social-media-integration';
+// Components for future sections
+// import { PhotoGallery } from '@/components/ui/photo-gallery';
+// import { VideoTestimonials } from '@/components/ui/video-testimonials';
+// import { SocialMediaIntegration } from '@/components/ui/social-media-integration';
 import { HeroButtons } from '@/components/ui/hero-buttons';
 import { MultiStepBookingForm } from '@/components/forms/MultiStepBookingForm';
 
-// Sample photos for the gallery
-const samplePhotos = [
+// Sample photos for the gallery (placeholder for future use)
+// eslint-disable-next-line no-unused-vars
+const _samplePhotos = [
   {
     id: '1',
     src: '/images/dj-setup-wedding.jpg',
@@ -60,8 +62,9 @@ const samplePhotos = [
   },
 ];
 
-// Sample video testimonials
-const sampleVideoTestimonials = [
+// Sample video testimonials (placeholder for future use)
+// eslint-disable-next-line no-unused-vars
+const _sampleVideoTestimonials = [
   {
     id: '1',
     clientName: 'Maya & Andre',

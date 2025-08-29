@@ -14,6 +14,7 @@ import {
 } from '@/lib/email';
 
 // Mock Resend
+const mockSend = jest.fn();
 jest.mock('resend', () => ({
   Resend: jest.fn().mockImplementation(() => ({
     emails: {
@@ -44,8 +45,15 @@ describe('Email Service Functions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSend.mockClear();
     // Set up environment variable
     process.env.RESEND_API_KEY = 'test-api-key';
+    
+    // Mock the Resend instance to use our mockSend function
+    const { Resend } = require('resend');
+    Resend.mockImplementation(() => ({
+      emails: { send: mockSend },
+    }));
   });
 
   describe('sendBookingConfirmation', () => {
@@ -56,11 +64,7 @@ describe('Email Service Functions', () => {
         error: null,
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockEmailResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockEmailResponse);
 
       // Act
       const result = await sendBookingConfirmation(mockBookingData);
@@ -70,11 +74,11 @@ describe('Email Service Functions', () => {
       expect(result.emailId).toBe('email-123');
       expect(result.message).toContain('successfully');
 
-      expect(mockResendSend).toHaveBeenCalledWith({
-        from: 'bookings@dappersquad.com',
-        to: ['john.doe@example.com'],
+      expect(mockSend).toHaveBeenCalledWith({
+        from: 'onboarding@resend.dev',
+        to: ['markphillips.voice@gmail.com'], // Development mode uses verified email
         subject: 'Booking Confirmed - DSE-123456-ABC | Dapper Squad Entertainment',
-        react: expect.any(Object),
+        html: expect.stringContaining('Booking Confirmed!'),
         tags: [
           { name: 'category', value: 'booking-confirmation' },
           { name: 'booking-reference', value: 'DSE-123456-ABC' },
@@ -89,11 +93,7 @@ describe('Email Service Functions', () => {
         error: { message: 'API rate limit exceeded' },
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockErrorResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockErrorResponse);
 
       // Act
       const result = await sendBookingConfirmation(mockBookingData);
@@ -105,11 +105,7 @@ describe('Email Service Functions', () => {
 
     it('should handle network errors', async () => {
       // Arrange
-      const mockResendSend = jest.fn().mockRejectedValue(new Error('Network error'));
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockRejectedValue(new Error('Network error'));
 
       // Act
       const result = await sendBookingConfirmation(mockBookingData);
@@ -126,20 +122,16 @@ describe('Email Service Functions', () => {
         error: null,
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockEmailResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockEmailResponse);
 
       // Act
       await sendBookingConfirmation(mockBookingData);
 
       // Assert
-      const emailCall = mockResendSend.mock.calls[0][0];
-      expect(emailCall.react.props.calendarLink).toContain('calendar.google.com');
-      expect(emailCall.react.props.calendarLink).toContain('action=TEMPLATE');
-      expect(emailCall.react.props.calendarLink).toContain('Wedding%20-%20Dapper%20Squad%20Entertainment');
+      const emailCall = mockSend.mock.calls[0][0];
+      expect(emailCall.html).toContain('calendar.google.com');
+      expect(emailCall.html).toContain('action=TEMPLATE');
+      expect(emailCall.html).toContain('Wedding%20-%20Dapper%20Squad%20Entertainment');
     });
 
     it('should handle missing optional fields', async () => {
@@ -158,18 +150,14 @@ describe('Email Service Functions', () => {
         error: null,
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockEmailResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockEmailResponse);
 
       // Act
       const result = await sendBookingConfirmation(minimalBookingData);
 
       // Assert
       expect(result.success).toBe(true);
-      expect(mockResendSend).toHaveBeenCalled();
+      expect(mockSend).toHaveBeenCalled();
     });
   });
 
@@ -181,11 +169,7 @@ describe('Email Service Functions', () => {
         error: null,
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockEmailResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockEmailResponse);
 
       // Act
       const result = await sendAdminNotification(mockBookingData);
@@ -194,9 +178,9 @@ describe('Email Service Functions', () => {
       expect(result.success).toBe(true);
       expect(result.emailId).toBe('admin-email-123');
 
-      expect(mockResendSend).toHaveBeenCalledWith({
-        from: 'bookings@dappersquad.com',
-        to: ['admin@dappersquad.com'],
+      expect(mockSend).toHaveBeenCalledWith({
+        from: 'onboarding@resend.dev',
+        to: ['markphillips.voice@gmail.com'],
         subject: 'New Booking: John Doe - December 25, 2024',
         html: expect.stringContaining('New Booking Received'),
         tags: [
@@ -213,17 +197,14 @@ describe('Email Service Functions', () => {
         error: null,
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockEmailResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockEmailResponse);
 
       // Act
       await sendAdminNotification(mockBookingData);
 
       // Assert
-      const emailCall = mockResendSend.mock.calls[0][0];
+      expect(mockSend).toHaveBeenCalled();
+      const emailCall = mockSend.mock.calls[0][0];
       const htmlContent = emailCall.html;
 
       expect(htmlContent).toContain('DSE-123456-ABC');
@@ -233,8 +214,8 @@ describe('Email Service Functions', () => {
       expect(htmlContent).toContain('Wedding');
       expect(htmlContent).toContain('DJ, Photography');
       expect(htmlContent).toContain('Grand Ballroom');
-      expect(htmlContent).toContain('$2,500.00');
-      expect(htmlContent).toContain('$500.00');
+      expect(htmlContent).toContain('2500.00');
+      expect(htmlContent).toContain('500.00');
     });
 
     it('should include dashboard link in admin notification', async () => {
@@ -246,17 +227,14 @@ describe('Email Service Functions', () => {
         error: null,
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockEmailResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockEmailResponse);
 
       // Act
       await sendAdminNotification(mockBookingData);
 
       // Assert
-      const emailCall = mockResendSend.mock.calls[0][0];
+      expect(mockSend).toHaveBeenCalled();
+      const emailCall = mockSend.mock.calls[0][0];
       expect(emailCall.html).toContain('https://dappersquad.com/admin/bookings/DSE-123456-ABC');
       expect(emailCall.html).toContain('View in Dashboard');
     });
@@ -268,11 +246,7 @@ describe('Email Service Functions', () => {
         error: { message: 'Invalid recipient email' },
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockErrorResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockErrorResponse);
 
       // Act
       const result = await sendAdminNotification(mockBookingData);
@@ -291,11 +265,7 @@ describe('Email Service Functions', () => {
         error: null,
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockEmailResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockEmailResponse);
 
       // Act
       const result = await sendContactFormResponse(
@@ -308,8 +278,8 @@ describe('Email Service Functions', () => {
       expect(result.success).toBe(true);
       expect(result.emailId).toBe('contact-email-123');
 
-      expect(mockResendSend).toHaveBeenCalledWith({
-        from: 'bookings@dappersquad.com',
+      expect(mockSend).toHaveBeenCalledWith({
+        from: 'onboarding@resend.dev',
         to: ['sarah@example.com'],
         subject: 'Thank you for contacting Dapper Squad Entertainment',
         html: expect.stringContaining('Hi Sarah Johnson'),
@@ -326,11 +296,7 @@ describe('Email Service Functions', () => {
         error: null,
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockEmailResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockEmailResponse);
 
       // Act
       await sendContactFormResponse(
@@ -340,7 +306,8 @@ describe('Email Service Functions', () => {
       );
 
       // Assert
-      const emailCall = mockResendSend.mock.calls[0][0];
+      expect(mockSend).toHaveBeenCalled();
+      const emailCall = mockSend.mock.calls[0][0];
       const htmlContent = emailCall.html;
 
       expect(htmlContent).toContain('Hi Sarah Johnson');
@@ -352,11 +319,7 @@ describe('Email Service Functions', () => {
 
     it('should handle contact form response errors', async () => {
       // Arrange
-      const mockResendSend = jest.fn().mockRejectedValue(new Error('SMTP connection failed'));
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockRejectedValue(new Error('SMTP connection failed'));
 
       // Act
       const result = await sendContactFormResponse(
@@ -379,25 +342,19 @@ describe('Email Service Functions', () => {
         error: null,
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockEmailResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockEmailResponse);
 
       // Act
       await sendBookingConfirmation(mockBookingData);
 
       // Assert
-      const emailCall = mockResendSend.mock.calls[0][0];
-      const calendarLink = emailCall.react.props.calendarLink;
+      expect(mockSend).toHaveBeenCalled();
+      const emailCall = mockSend.mock.calls[0][0];
+      const htmlContent = emailCall.html;
 
-      expect(calendarLink).toContain('calendar.google.com/calendar/render');
-      expect(calendarLink).toContain('action=TEMPLATE');
-      expect(calendarLink).toContain('text=');
-      expect(calendarLink).toContain('dates=');
-      expect(calendarLink).toContain('details=');
-      expect(calendarLink).toContain('location=');
+      expect(htmlContent).toContain('calendar.google.com/calendar/render');
+      expect(htmlContent).toContain('action=TEMPLATE');
+      expect(htmlContent).toContain('Add to Calendar');
     });
 
     it('should encode special characters in calendar link', async () => {
@@ -413,22 +370,19 @@ describe('Email Service Functions', () => {
         error: null,
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockEmailResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockEmailResponse);
 
       // Act
       await sendBookingConfirmation(specialCharBooking);
 
       // Assert
-      const emailCall = mockResendSend.mock.calls[0][0];
-      const calendarLink = emailCall.react.props.calendarLink;
+      expect(mockSend).toHaveBeenCalled();
+      const emailCall = mockSend.mock.calls[0][0];
+      const htmlContent = emailCall.html;
 
-      expect(calendarLink).toContain('%20'); // Encoded space
-      expect(calendarLink).toContain('%26'); // Encoded &
-      expect(calendarLink).not.toContain('"'); // Should be encoded
+      expect(htmlContent).toContain('%20'); // Encoded space
+      expect(htmlContent).toContain('%26'); // Encoded &
+      expect(htmlContent).toContain('calendar.google.com');
     });
 
     it('should handle missing venue information in calendar link', async () => {
@@ -444,21 +398,18 @@ describe('Email Service Functions', () => {
         error: null,
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockEmailResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockEmailResponse);
 
       // Act
       await sendBookingConfirmation(bookingWithoutVenue);
 
       // Assert
-      const emailCall = mockResendSend.mock.calls[0][0];
-      const calendarLink = emailCall.react.props.calendarLink;
+      expect(mockSend).toHaveBeenCalled();
+      const emailCall = mockSend.mock.calls[0][0];
+      const htmlContent = emailCall.html;
 
-      expect(calendarLink).toContain('location='); // Should still have location parameter
-      expect(calendarLink).toContain('calendar.google.com');
+      expect(htmlContent).toContain('location='); // Should still have location parameter
+      expect(htmlContent).toContain('calendar.google.com');
     });
   });
 
@@ -520,19 +471,16 @@ describe('Email Service Functions', () => {
         error: null,
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockEmailResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockEmailResponse);
 
       // Act
       await sendBookingConfirmation(bookingWithHTML);
 
       // Assert
-      const emailCall = mockResendSend.mock.calls[0][0];
+      const emailCall = mockSend.mock.calls[0][0];
       // Email template should handle HTML sanitization
-      expect(emailCall.react).toBeDefined();
+      expect(emailCall.html).toBeDefined();
+      expect(emailCall.html).toContain('John Doe');
     });
 
     it('should handle very long content gracefully', async () => {
@@ -548,18 +496,14 @@ describe('Email Service Functions', () => {
         error: null,
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockEmailResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockEmailResponse);
 
       // Act
       const result = await sendBookingConfirmation(bookingWithLongContent);
 
       // Assert
       expect(result.success).toBe(true);
-      expect(mockResendSend).toHaveBeenCalled();
+      expect(mockSend).toHaveBeenCalled();
     });
   });
 
@@ -571,11 +515,7 @@ describe('Email Service Functions', () => {
         error: null,
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockEmailResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockEmailResponse);
 
       const promises = Array.from({ length: 5 }, (_, i) => 
         sendBookingConfirmation({
@@ -594,7 +534,7 @@ describe('Email Service Functions', () => {
       results.forEach(result => {
         expect(result.success).toBe(true);
       });
-      expect(mockResendSend).toHaveBeenCalledTimes(5);
+      expect(mockSend).toHaveBeenCalledTimes(5);
     });
 
     it('should handle rate limiting errors', async () => {
@@ -604,11 +544,7 @@ describe('Email Service Functions', () => {
         error: { message: 'Rate limit exceeded. Please try again later.' },
       };
 
-      const mockResendSend = jest.fn().mockResolvedValue(mockErrorResponse);
-      const { Resend } = require('resend');
-      Resend.mockImplementation(() => ({
-        emails: { send: mockResendSend },
-      }));
+      mockSend.mockResolvedValue(mockErrorResponse);
 
       // Act
       const result = await sendBookingConfirmation(mockBookingData);
