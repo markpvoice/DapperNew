@@ -110,3 +110,10 @@ playwright/.cache/
 # E2E test artifacts
 /tests/e2e/screenshots/
 /tests/e2e/videos/
+
+# Test file corruption patterns (prevent Jest worker crashes from being committed)
+tests/**/*!*
+tests/**/._*
+tests/**/.!*
+**/*.test.tsx.!*
+**/*.test.ts.!*

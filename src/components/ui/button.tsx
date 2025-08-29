@@ -55,10 +55,29 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     rightIcon,
     children,
     disabled,
+    onClick,
+    onKeyDown,
     ...props 
   }, ref) => {
     const Comp = asChild ? Slot : 'button';
     const isDisabled = disabled || loading;
+    
+    // Handle keyboard events for accessibility
+    const handleKeyDown = React.useCallback((event: React.KeyboardEvent<HTMLButtonElement>) => {
+      // Call original onKeyDown if provided
+      onKeyDown?.(event);
+      
+      // If disabled, don't handle keyboard events
+      if (isDisabled) {
+        return;
+      }
+      
+      // Trigger onClick for Enter and Space keys (standard accessibility pattern)
+      if ((event.key === 'Enter' || event.key === ' ') && onClick) {
+        event.preventDefault();
+        onClick(event as any); // Cast to MouseEvent for onClick signature
+      }
+    }, [onClick, onKeyDown, isDisabled]);
     
     // If asChild is true, pass through children directly without modification
     if (asChild) {
@@ -80,6 +99,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={isDisabled}
         aria-disabled={isDisabled}
         aria-busy={loading}
+        tabIndex={isDisabled ? -1 : 0}
+        onClick={onClick}
+        onKeyDown={handleKeyDown}
         {...props}
       >
         {loading && (
