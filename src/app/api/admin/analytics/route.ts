@@ -4,6 +4,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+
+// Force dynamic rendering for API routes that use request.cookies or request.url
+export const dynamic = 'force-dynamic';
 import { z } from 'zod';
 import { verifyAuth } from '@/lib/auth';
 

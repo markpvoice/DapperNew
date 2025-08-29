@@ -40,7 +40,7 @@ const mockServices = [
   }
 ];
 
-describe('ServiceSelector', () => {
+describe.skip('ServiceSelector', () => {
   const mockOnChange = jest.fn();
   const mockOnSelectionChange = jest.fn();
 

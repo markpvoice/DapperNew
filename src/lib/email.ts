@@ -4,11 +4,11 @@ import { isValidEmail } from './utils';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'markphillips.voice@gmail.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@dappersquad.com';
 
 // In development/testing, Resend only allows sending to verified email addresses
 // We'll use the verified email for testing but show the original recipient in logs
-const VERIFIED_EMAIL = 'markphillips.voice@gmail.com';
+const VERIFIED_EMAIL = process.env.VERIFIED_EMAIL || 'test@example.com';
 const IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
 
 export interface BookingEmailData {
@@ -50,7 +50,7 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
     const recipientEmail = IS_DEVELOPMENT ? VERIFIED_EMAIL : data.clientEmail;
     
 
-    const { data: emailData, error } = await resend.emails.send({
+    const response = await resend.emails.send({
       from: FROM_EMAIL,
       to: [recipientEmail],
       subject: `Booking Confirmed - ${data.bookingReference} | Dapper Squad Entertainment`,
@@ -100,14 +100,38 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
       ],
     });
 
-    if (error) {
-      console.error('❌ Resend API error:', error);
-      throw new Error(`Failed to send booking confirmation: ${error.message || 'Unknown error'}`);
+    // Handle the response properly - it could be the data directly or wrapped in data/error
+    let emailData, error;
+    if (response && typeof response === 'object') {
+      if ('data' in response && 'error' in response) {
+        // Wrapped format: { data: {...}, error: null }
+        emailData = response.data;
+        error = response.error;
+      } else if ('id' in response) {
+        // Direct format: { id: '...', ... }
+        emailData = response;
+        error = null;
+      } else {
+        error = response;
+      }
+    } else {
+      error = new Error('No response received from Resend API');
     }
 
-    if (!emailData) {
+    if (error) {
+      console.error('❌ Resend API error:', error);
+      return {
+        success: false,
+        error: `Failed to send booking confirmation: ${error.message || error || 'Unknown error'}`,
+      };
+    }
+
+    if (!emailData || !emailData.id) {
       console.error('❌ No email data returned from Resend');
-      throw new Error('Failed to send booking confirmation: No response data');
+      return {
+        success: false,
+        error: 'Failed to send booking confirmation: No response data',
+      };
     }
 
     
@@ -128,7 +152,7 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
 export async function sendAdminNotification(data: BookingEmailData) {
   try {
     
-    const { data: emailData, error } = await resend.emails.send({
+    const response = await resend.emails.send({
       from: FROM_EMAIL,
       to: [ADMIN_EMAIL],
       subject: `New Booking: ${data.clientName} - ${data.eventDate}`,
@@ -167,14 +191,38 @@ export async function sendAdminNotification(data: BookingEmailData) {
       ],
     });
 
-    if (error) {
-      console.error('❌ Admin notification error:', error);
-      throw new Error(`Failed to send admin notification: ${error.message || 'Unknown error'}`);
+    // Handle the response properly - it could be the data directly or wrapped in data/error
+    let emailData, error;
+    if (response && typeof response === 'object') {
+      if ('data' in response && 'error' in response) {
+        // Wrapped format: { data: {...}, error: null }
+        emailData = response.data;
+        error = response.error;
+      } else if ('id' in response) {
+        // Direct format: { id: '...', ... }
+        emailData = response;
+        error = null;
+      } else {
+        error = response;
+      }
+    } else {
+      error = new Error('No response received from Resend API');
     }
 
-    if (!emailData) {
+    if (error) {
+      console.error('❌ Admin notification error:', error);
+      return {
+        success: false,
+        error: `Failed to send admin notification: ${error.message || error || 'Unknown error'}`,
+      };
+    }
+
+    if (!emailData || !emailData.id) {
       console.error('❌ No email data returned for admin notification');
-      throw new Error('Failed to send admin notification: No response data');
+      return {
+        success: false,
+        error: 'Failed to send admin notification: No response data',
+      };
     }
 
     
@@ -203,7 +251,7 @@ export async function sendContactFormResponse(name: string, email: string, subje
     if (!name || !subject) {
       throw new Error('Missing required contact data');
     }
-    const { data: emailData, error } = await resend.emails.send({
+    const response = await resend.emails.send({
       from: FROM_EMAIL,
       to: [email],
       subject: 'Thank you for contacting Dapper Squad Entertainment',
@@ -249,13 +297,43 @@ export async function sendContactFormResponse(name: string, email: string, subje
       ],
     });
 
+    // Handle the response properly - it could be the data directly or wrapped in data/error
+    let emailData, error;
+    if (response && typeof response === 'object') {
+      if ('data' in response && 'error' in response) {
+        // Wrapped format: { data: {...}, error: null }
+        emailData = response.data;
+        error = response.error;
+      } else if ('id' in response) {
+        // Direct format: { id: '...', ... }
+        emailData = response;
+        error = null;
+      } else {
+        error = response;
+      }
+    } else {
+      error = new Error('No response received from Resend API');
+    }
+
     if (error) {
-      throw new Error(`Failed to send contact response: ${error.message}`);
+      console.error('❌ Contact response error:', error);
+      return {
+        success: false,
+        error: `Failed to send contact response: ${error.message || error || 'Unknown error'}`,
+      };
+    }
+
+    if (!emailData || !emailData.id) {
+      console.error('❌ No email data returned for contact response');
+      return {
+        success: false,
+        error: 'Failed to send contact response: No response data',
+      };
     }
 
     return {
       success: true,
-      emailId: emailData?.id,
+      emailId: emailData.id,
       message: 'Contact form response sent successfully',
     };
   } catch (error) {

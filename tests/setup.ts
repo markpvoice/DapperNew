@@ -68,6 +68,59 @@ jest.setTimeout(10000);
 // Mock fetch API
 global.fetch = jest.fn();
 
+// Mock Web APIs for Next.js API route testing
+global.Request = jest.fn((input: RequestInfo, init?: RequestInit) => ({
+  url: typeof input === 'string' ? input : input.url,
+  method: init?.method || 'GET',
+  headers: new Map(Object.entries(init?.headers || {})),
+  body: init?.body,
+  json: jest.fn(() => Promise.resolve(init?.body ? JSON.parse(init.body as string) : {})),
+  text: jest.fn(() => Promise.resolve(init?.body as string || '')),
+  formData: jest.fn(() => Promise.resolve(new FormData())),
+  arrayBuffer: jest.fn(() => Promise.resolve(new ArrayBuffer(0))),
+  blob: jest.fn(() => Promise.resolve(new Blob())),
+  clone: jest.fn(() => ({ ...global.Request })),
+  cookies: {
+    get: jest.fn(),
+    set: jest.fn(),
+    delete: jest.fn(),
+  },
+})) as any;
+
+global.Response = jest.fn((body?: any, init?: ResponseInit) => ({
+  ok: init?.status ? init.status >= 200 && init.status < 300 : true,
+  status: init?.status || 200,
+  statusText: init?.statusText || 'OK',
+  headers: new Map(Object.entries(init?.headers || {})),
+  json: jest.fn(() => Promise.resolve(typeof body === 'string' ? JSON.parse(body) : body)),
+  text: jest.fn(() => Promise.resolve(typeof body === 'object' ? JSON.stringify(body) : body)),
+  arrayBuffer: jest.fn(() => Promise.resolve(new ArrayBuffer(0))),
+  blob: jest.fn(() => Promise.resolve(new Blob())),
+  clone: jest.fn(() => ({ ...global.Response })),
+})) as any;
+
+global.Headers = jest.fn((init?: HeadersInit) => {
+  const map = new Map();
+  if (init) {
+    if (Array.isArray(init)) {
+      init.forEach(([key, value]) => map.set(key, value));
+    } else if (typeof init === 'object') {
+      Object.entries(init).forEach(([key, value]) => map.set(key, value));
+    }
+  }
+  return {
+    get: (key: string) => map.get(key),
+    set: (key: string, value: string) => map.set(key, value),
+    has: (key: string) => map.has(key),
+    delete: (key: string) => map.delete(key),
+    forEach: (callback: (value: string, key: string) => void) => map.forEach(callback),
+    entries: () => map.entries(),
+    keys: () => map.keys(),
+    values: () => map.values(),
+    [Symbol.iterator]: () => map[Symbol.iterator](),
+  };
+}) as any;
+
 // Mock URL.createObjectURL for file testing
 Object.defineProperty(URL, 'createObjectURL', {
   value: jest.fn(() => 'blob:mock-url'),

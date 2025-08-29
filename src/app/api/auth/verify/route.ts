@@ -6,127 +6,74 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import * as jwt from 'jsonwebtoken';
-import { db } from '@/lib/db';
 
-interface JWTPayload {
-  userId: number;
-  email: string;
-  name: string;
-  role: string;
-  iat?: number;
-  exp?: number;
-  iss?: string;
-  aud?: string;
-}
+// Force dynamic rendering for API routes that use request.cookies
+export const dynamic = 'force-dynamic';
+import { verifyAuth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get token from cookie
-    const token = request.cookies.get('auth-token')?.value;
+    // Use the new auth system with access/refresh tokens
+    const authResult = await verifyAuth(request);
     
-    if (!token) {
+    if (!authResult.success || !authResult.user) {
       return NextResponse.json(
-        { success: false, error: 'No authentication token provided' },
+        { success: false, error: authResult.error || 'Authentication required' },
         { status: 401 }
       );
     }
 
-    // Verify JWT secret exists
-    const jwtSecret = process.env.NEXTAUTH_SECRET;
-    if (!jwtSecret) {
-      console.error('NEXTAUTH_SECRET environment variable is not set');
-      return NextResponse.json(
-        { success: false, error: 'Server configuration error' },
-        { status: 500 }
-      );
-    }
+    // If auth needs refresh, handle token refresh automatically
+    if (authResult.needsRefresh) {
+      // The verifyAuth function already validated the refresh token
+      // We can generate new tokens and set them
+      const { generateTokenPair } = await import('@/lib/auth');
+      const tokens = generateTokenPair({
+        id: authResult.user.id,
+        email: authResult.user.email,
+        name: authResult.user.name,
+        role: authResult.user.role,
+      });
 
-    // Verify and decode token
-    let decoded: JWTPayload;
-    try {
-      decoded = jwt.verify(token, jwtSecret, {
-        issuer: 'dapper-squad-api',
-        audience: 'dapper-squad-admin',
-      }) as JWTPayload;
-    } catch (jwtError) {
-      // Token is invalid or expired
-      const response = NextResponse.json(
-        { success: false, error: 'Invalid or expired token' },
-        { status: 401 }
-      );
-      
-      // Clear invalid cookie
-      response.cookies.set('auth-token', '', {
+      const response = NextResponse.json({
+        success: true,
+        user: authResult.user,
+        tokenRefreshed: true,
+      });
+
+      // Set new tokens
+      response.cookies.set('access-token', tokens.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 0,
+        maxAge: 60 * 60, // 1 hour
         path: '/',
       });
-      
-      return response;
-    }
 
-    // Verify user still exists and is active
-    const adminUser = await db.adminUser.findUnique({
-      where: { id: decoded.userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        isActive: true,
-        lastLogin: true,
-      },
-    });
-
-    if (!adminUser) {
-      const response = NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 401 }
-      );
-      
-      // Clear cookie for non-existent user
-      response.cookies.set('auth-token', '', {
+      response.cookies.set('refresh-token', tokens.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 0,
+        maxAge: 7 * 24 * 60 * 60, // 7 days
         path: '/',
       });
-      
-      return response;
-    }
 
-    if (!adminUser.isActive) {
-      const response = NextResponse.json(
-        { success: false, error: 'User account is deactivated' },
-        { status: 401 }
-      );
-      
-      // Clear cookie for inactive user
-      response.cookies.set('auth-token', '', {
+      // Keep legacy token for backward compatibility
+      response.cookies.set('auth-token', tokens.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 0,
+        maxAge: 60 * 60, // 1 hour
         path: '/',
       });
-      
+
       return response;
     }
 
     // Return user information
     return NextResponse.json({
       success: true,
-      user: {
-        id: adminUser.id,
-        email: adminUser.email,
-        name: adminUser.name,
-        role: adminUser.role,
-        lastLogin: adminUser.lastLogin,
-      },
+      user: authResult.user,
       tokenValid: true,
     });
 

@@ -7,6 +7,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
+// Force dynamic rendering for API routes that use request.cookies
+export const dynamic = 'force-dynamic';
+
 export async function POST(_request: NextRequest) {
   try {
     // Create response
@@ -15,7 +18,24 @@ export async function POST(_request: NextRequest) {
       message: 'Logout successful',
     });
 
-    // Clear the authentication cookie
+    // Clear all authentication cookies
+    response.cookies.set('access-token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 0, // Expire immediately
+      path: '/',
+    });
+
+    response.cookies.set('refresh-token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 0, // Expire immediately
+      path: '/',
+    });
+
+    // Clear legacy auth-token as well
     response.cookies.set('auth-token', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

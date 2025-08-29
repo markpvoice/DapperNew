@@ -6,48 +6,20 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+
+// Force dynamic rendering for API routes that use request.cookies
+export const dynamic = 'force-dynamic';
 import { z } from 'zod';
 import * as bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
 import { db } from '@/lib/db';
+import { checkLoginRateLimit, clearLoginRateLimit } from '@/lib/rate-limiter';
+import { generateTokenPair } from '@/lib/auth';
 
 // Validation schema
 const loginSchema = z.object({
   email: z.string().email('Invalid email format'),
   password: z.string().min(1, 'Password is required'),
 });
-
-// Rate limiting (simple in-memory store for development)
-const loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
-
-function checkRateLimit(clientIp: string): { allowed: boolean; resetTime?: number } {
-  const now = Date.now();
-  const attempts = loginAttempts.get(clientIp);
-  
-  if (!attempts) {
-    loginAttempts.set(clientIp, { count: 1, lastAttempt: now });
-    return { allowed: true };
-  }
-  
-  // Reset if lockout period has passed
-  if (now - attempts.lastAttempt > LOCKOUT_DURATION) {
-    loginAttempts.set(clientIp, { count: 1, lastAttempt: now });
-    return { allowed: true };
-  }
-  
-  // Check if over the limit
-  if (attempts.count >= MAX_ATTEMPTS) {
-    const resetTime = attempts.lastAttempt + LOCKOUT_DURATION;
-    return { allowed: false, resetTime };
-  }
-  
-  // Increment attempts
-  attempts.count++;
-  attempts.lastAttempt = now;
-  return { allowed: true };
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,16 +29,23 @@ export async function POST(request: NextRequest) {
                      '127.0.0.1';
 
     // Check rate limiting
-    const rateLimit = checkRateLimit(clientIp);
+    const rateLimit = await checkLoginRateLimit(clientIp);
     if (!rateLimit.allowed) {
-      const resetIn = rateLimit.resetTime ? Math.ceil((rateLimit.resetTime - Date.now()) / 1000) : 0;
       return NextResponse.json(
         { 
           success: false, 
           error: 'Too many login attempts. Please try again later.',
-          resetIn,
+          retryAfter: rateLimit.retryAfter,
+          remaining: rateLimit.remaining,
         },
-        { status: 429 }
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimit.retryAfter || 900), // Default 15 minutes
+            'X-RateLimit-Remaining': String(rateLimit.remaining),
+            'X-RateLimit-Reset': String(Math.floor(rateLimit.resetTime / 1000)),
+          },
+        }
       );
     }
 
@@ -126,29 +105,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Reset rate limiting on successful login
-    loginAttempts.delete(clientIp);
+    await clearLoginRateLimit(clientIp);
 
-    // Generate JWT token
-    const jwtSecret = process.env.NEXTAUTH_SECRET;
-    if (!jwtSecret) {
-      console.error('NEXTAUTH_SECRET environment variable is not set');
-      return NextResponse.json(
-        { success: false, error: 'Server configuration error' },
-        { status: 500 }
-      );
-    }
-
-    const tokenPayload = {
-      userId: adminUser.id,
+    // Generate access and refresh tokens
+    const tokens = generateTokenPair({
+      id: String(adminUser.id),
       email: adminUser.email,
       name: adminUser.name,
       role: adminUser.role,
-    };
-
-    const token = jwt.sign(tokenPayload, jwtSecret, {
-      expiresIn: '24h',
-      issuer: 'dapper-squad-api',
-      audience: 'dapper-squad-admin',
     });
 
     // Update last login
@@ -157,7 +121,7 @@ export async function POST(request: NextRequest) {
       data: { lastLogin: new Date() },
     });
 
-    // Set HTTP-only cookie
+    // Set HTTP-only cookies for both access and refresh tokens
     const response = NextResponse.json({
       success: true,
       message: 'Login successful',
@@ -168,13 +132,33 @@ export async function POST(request: NextRequest) {
         role: adminUser.role,
         lastLogin: adminUser.lastLogin,
       },
+      expiresAt: new Date(tokens.accessTokenExpires).toISOString(),
     });
 
-    response.cookies.set('auth-token', token, {
+    // Set access token cookie (short-lived)
+    response.cookies.set('access-token', tokens.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 24 * 60 * 60, // 24 hours
+      maxAge: 60 * 60, // 1 hour
+      path: '/',
+    });
+
+    // Set refresh token cookie (long-lived)
+    response.cookies.set('refresh-token', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/',
+    });
+
+    // Keep legacy auth-token for backward compatibility (can be removed later)
+    response.cookies.set('auth-token', tokens.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60, // 1 hour
       path: '/',
     });
 

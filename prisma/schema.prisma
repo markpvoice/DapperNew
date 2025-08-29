@@ -177,3 +177,16 @@ enum EmailNotificationStatus {
 
   @@map("email_notification_status")
 }
+
+// Rate limiting model for production-grade rate limiting
+model RateLimitAttempt {
+  id         Int      @id @default(autoincrement())
+  identifier String   @db.VarChar(255) // IP address or user ID
+  action     String   @db.VarChar(100) // login, contact, booking, etc.
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Index for efficient cleanup and queries
+  @@index([identifier, action, createdAt])
+  @@index([createdAt]) // For cleanup queries
+  @@map("rate_limit_attempts")
+}

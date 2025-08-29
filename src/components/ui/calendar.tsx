@@ -112,8 +112,8 @@ export function Calendar({
       const dayData = calendarData?.calendar.find(item => item.date === dateStr);
       const isPastDate = _date < today;
       
-      // Past dates are never available, future dates default to available
-      const isAvailable = isPastDate ? false : (dayData?.isAvailable ?? true);
+      // Past dates are never available, future dates use data or default to available
+      const isAvailable = isPastDate ? false : (dayData ? dayData.isAvailable : true);
       const blockedReason = isPastDate ? 'Past date' : dayData?.blockedReason;
       const booking = dayData?.booking;
 
