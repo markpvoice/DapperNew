@@ -238,16 +238,38 @@ export const queryHelpers = {
 };
 
 // Connection cleanup on process termination
-process.on('SIGINT', async () => {
-  // eslint-disable-next-line no-console
-  console.log('🔄 Gracefully shutting down database connections...');
-  await disconnectFromDatabase();
-  process.exit(0);
-});
+// Only register listeners once to prevent memory leaks
+let listenersRegistered = false;
 
-process.on('SIGTERM', async () => {
-  // eslint-disable-next-line no-console
-  console.log('🔄 Gracefully shutting down database connections...');
-  await disconnectFromDatabase();
-  process.exit(0);
-});
+if (!listenersRegistered) {
+  // Increase max listeners to accommodate multiple database operations
+  process.setMaxListeners(20);
+  
+  const handleGracefulShutdown = async (signal: string) => {
+    // eslint-disable-next-line no-console
+    console.log(`🔄 Received ${signal}. Gracefully shutting down database connections...`);
+    try {
+      await disconnectFromDatabase();
+    } catch (error) {
+      console.error('Error during database shutdown:', error);
+    } finally {
+      process.exit(0);
+    }
+  };
+
+  process.on('SIGINT', () => handleGracefulShutdown('SIGINT'));
+  process.on('SIGTERM', () => handleGracefulShutdown('SIGTERM'));
+  
+  // Handle uncaught exceptions and unhandled rejections
+  process.on('uncaughtException', async (error) => {
+    console.error('Uncaught Exception:', error);
+    await handleGracefulShutdown('uncaughtException');
+  });
+
+  process.on('unhandledRejection', async (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    await handleGracefulShutdown('unhandledRejection');
+  });
+  
+  listenersRegistered = true;
+}

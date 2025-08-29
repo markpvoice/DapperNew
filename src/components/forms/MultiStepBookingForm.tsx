@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { createBooking, type CreateBookingData } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 

@@ -8,7 +8,7 @@
  */
 
 import { render, screen, fireEvent } from '@testing-library/react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 
 describe('Button Component', () => {
   // Test 1: Basic rendering
