@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
 
 export interface Photo {
   id: string;
@@ -189,13 +188,12 @@ export function PhotoGallery({
               data-testid={`thumbnail-${photo.id}`}
               className={`relative ${ASPECT_RATIO_CLASSES[aspectRatio]} overflow-hidden`}
             >
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={photo.thumbnail || photo.src}
                 alt={photo.alt}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 loading={lazyLoad ? 'lazy' : 'eager'}
-                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
               
               {/* Overlay */}
@@ -234,14 +232,12 @@ export function PhotoGallery({
             {/* Image */}
             <div className="relative flex-1 flex items-center justify-center min-h-0">
               <div className="relative max-w-full max-h-full">
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   data-testid="lightbox-image"
                   src={currentPhoto.src}
                   alt={currentPhoto.alt}
-                  width={1200}
-                  height={800}
                   className="max-w-full max-h-[80vh] w-auto h-auto object-contain"
-                  priority
                 />
               </div>
             </div>

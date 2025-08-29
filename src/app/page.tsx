@@ -2,63 +2,56 @@
 
 import { useState } from 'react';
 import { CalendarSection } from '@/components/ui/calendar-section';
-// Components for future sections
-// import { PhotoGallery } from '@/components/ui/photo-gallery';
+// Components for sections
+import { PhotoGallery } from '@/components/ui/photo-gallery';
 // import { VideoTestimonials } from '@/components/ui/video-testimonials';
 // import { SocialMediaIntegration } from '@/components/ui/social-media-integration';
 import { HeroButtons } from '@/components/ui/hero-buttons';
 import { MultiStepBookingForm } from '@/components/forms/MultiStepBookingForm';
 
-// Sample photos for the gallery (placeholder for future use)
-// eslint-disable-next-line no-unused-vars
-const _samplePhotos = [
+// Gallery photos using actual uploaded images
+const galleryPhotos = [
   {
     id: '1',
-    src: '/images/dj-setup-wedding.jpg',
+    src: '/images/image1.jpeg',
     alt: 'Professional DJ setup at wedding reception',
     caption: 'Premium sound system and lighting setup at an elegant wedding reception in Chicago',
     category: 'dj',
-    thumbnail: '/images/thumbs/dj-setup-wedding-thumb.jpg',
   },
   {
     id: '2',
-    src: '/images/karaoke-corporate.jpg', 
+    src: '/images/image2.jpeg', 
     alt: 'Corporate team enjoying karaoke night',
     caption: 'Interactive karaoke session bringing together corporate teams for team building',
     category: 'karaoke',
-    thumbnail: '/images/thumbs/karaoke-corporate-thumb.jpg',
   },
   {
     id: '3',
-    src: '/images/photography-anniversary.jpg',
+    src: '/images/image3.jpeg',
     alt: 'Candid photography at anniversary celebration',
     caption: 'Capturing precious moments and genuine emotions at a golden anniversary party',
     category: 'photography',
-    thumbnail: '/images/thumbs/photography-anniversary-thumb.jpg',
   },
   {
     id: '4',
-    src: '/images/dj-outdoor-party.jpg',
+    src: '/images/image4.jpeg',
     alt: 'Outdoor DJ setup for summer party',
     caption: 'Weather-resistant professional setup for outdoor summer celebration',
     category: 'dj',
-    thumbnail: '/images/thumbs/dj-outdoor-party-thumb.jpg',
   },
   {
     id: '5',
-    src: '/images/karaoke-birthday.jpg',
+    src: '/images/image5.jpeg',
     alt: 'Birthday party karaoke fun',
     caption: 'Birthday celebration with friends enjoying our extensive song library',
     category: 'karaoke',
-    thumbnail: '/images/thumbs/karaoke-birthday-thumb.jpg',
   },
   {
     id: '6',
-    src: '/images/photography-wedding.jpg',
+    src: '/images/image6.jpeg',
     alt: 'Professional wedding photography',
     caption: 'Elegant wedding photography capturing the perfect moments of your special day',
     category: 'photography',
-    thumbnail: '/images/thumbs/photography-wedding-thumb.jpg',
   },
 ];
 
@@ -241,18 +234,14 @@ export default function HomePage() {
             A quick peek at the fun we bring to every party.
           </p>
 
-          {/* Functional Photo Gallery with Lightbox - Temporarily disabled */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-gray-200 rounded-lg aspect-video flex items-center justify-center">
-              <span className="text-gray-500">DJ Services Gallery</span>
-            </div>
-            <div className="bg-gray-200 rounded-lg aspect-video flex items-center justify-center">
-              <span className="text-gray-500">Karaoke Events Gallery</span>
-            </div>
-            <div className="bg-gray-200 rounded-lg aspect-video flex items-center justify-center">
-              <span className="text-gray-500">Photography Portfolio</span>
-            </div>
-          </div>
+          {/* Professional Photo Gallery with Lightbox */}
+          <PhotoGallery 
+            photos={galleryPhotos}
+            columns={3}
+            aspectRatio="video"
+            showCategories={true}
+            lazyLoad={true}
+          />
         </div>
       </section>
 
