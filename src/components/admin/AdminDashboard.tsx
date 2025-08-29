@@ -20,6 +20,7 @@ export function AdminDashboard({ className = '' }: AdminDashboardProps) {
   const { user } = useAuth();
   const { stats, upcomingEvents, recentBookings, loading, error } = useDashboardData();
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings'>('overview');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   if (loading) {
     return (
@@ -47,7 +48,7 @@ export function AdminDashboard({ className = '' }: AdminDashboardProps) {
   }
 
   return (
-    <div data-testid="admin-dashboard" className={`min-h-screen bg-gray-50 ${className}`}>
+    <div data-testid="admin-dashboard" className={`min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 ${className}`}>
       {/* Navigation */}
       <nav data-testid="admin-navigation" className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -57,10 +58,11 @@ export function AdminDashboard({ className = '' }: AdminDashboardProps) {
                 <div className="w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center text-brand-charcoal font-bold text-sm">
                   DS
                 </div>
-                <h1 className="ml-3 text-xl font-bold text-gray-900">Admin Dashboard</h1>
+                <h1 className="ml-3 text-lg sm:text-xl font-bold text-gray-900">Admin Dashboard</h1>
               </div>
               
-              <div className="hidden md:flex space-x-6">
+              {/* Desktop Navigation */}
+              <div data-testid="desktop-navigation" className="hidden md:flex space-x-6">
                 <button 
                   onClick={() => setActiveTab('overview')}
                   className={`pb-4 pt-4 font-medium ${
@@ -91,6 +93,45 @@ export function AdminDashboard({ className = '' }: AdminDashboardProps) {
                   Settings
                 </a>
               </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                data-testid="mobile-menu-button"
+                type="button"
+                className="md:hidden inline-flex items-center justify-center min-h-[2.75rem] min-w-[2.75rem] h-11 w-11 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-gold"
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-menu"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                <span className="sr-only">Open main menu</span>
+                {!isMobileMenuOpen ? (
+                  <svg
+                    className="block h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="block h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+              </button>
             </div>
             
             <div className="flex items-center space-x-4">
@@ -103,13 +144,79 @@ export function AdminDashboard({ className = '' }: AdminDashboardProps) {
         </div>
       </nav>
 
+      {/* Mobile Navigation Menu */}
+      {isMobileMenuOpen && (
+        <div data-testid="mobile-navigation-menu" className="md:hidden bg-white border-b shadow-lg">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <button
+              data-testid="mobile-nav-dashboard"
+              onClick={() => {
+                setActiveTab('overview');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`block w-full text-left px-3 py-3 text-base font-medium min-h-[2.75rem] rounded-md transition-colors relative ${
+                activeTab === 'overview'
+                  ? 'text-brand-gold bg-brand-gold bg-opacity-10'
+                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              Dashboard
+              {activeTab === 'overview' && (
+                <span data-testid="active-tab-indicator" className="absolute inset-y-0 left-0 w-1 bg-brand-gold rounded-r"></span>
+              )}
+            </button>
+            <button
+              data-testid="mobile-nav-bookings"
+              onClick={() => {
+                setActiveTab('bookings');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`block w-full text-left px-3 py-3 text-base font-medium min-h-[2.75rem] rounded-md transition-colors relative ${
+                activeTab === 'bookings'
+                  ? 'text-brand-gold bg-brand-gold bg-opacity-10'
+                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              Bookings
+              {activeTab === 'bookings' && (
+                <span data-testid="active-tab-indicator" className="absolute inset-y-0 left-0 w-1 bg-brand-gold rounded-r"></span>
+              )}
+            </button>
+            <a
+              data-testid="mobile-nav-calendar"
+              href="/admin/calendar"
+              className="block px-3 py-3 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 min-h-[2.75rem] rounded-md transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Calendar
+            </a>
+            <a
+              data-testid="mobile-nav-analytics"
+              href="/admin/analytics"
+              className="block px-3 py-3 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 min-h-[2.75rem] rounded-md transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Analytics
+            </a>
+            <a
+              data-testid="mobile-nav-settings"
+              href="/admin/settings"
+              className="block px-3 py-3 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 min-h-[2.75rem] rounded-md transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Settings
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <main data-testid="admin-content" className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {activeTab === 'overview' ? (
           <>
             {/* Overview Dashboard */}
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div data-testid="dashboard-stats" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-full">

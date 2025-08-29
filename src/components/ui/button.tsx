@@ -19,11 +19,11 @@ const buttonVariants = cva(
           'border-2 border-brand-gold text-brand-gold bg-transparent hover:bg-brand-gold hover:text-brand-charcoal transition-all duration-200',
       },
       size: {
-        default: 'h-10 px-4 py-2',
-        sm: 'h-9 rounded-md px-3',
-        lg: 'h-11 rounded-md px-8',
-        xl: 'h-12 rounded-lg px-10 text-base',
-        icon: 'h-10 w-10',
+        default: 'min-h-[2.75rem] h-11 px-4 py-2',  // 44px minimum height
+        sm: 'min-h-[2.75rem] h-10 px-3 py-1',       // 44px minimum height, smaller on desktop where possible
+        lg: 'min-h-[2.75rem] h-11 rounded-md px-8', // 44px minimum height
+        xl: 'min-h-[3rem] h-12 rounded-lg px-10 text-base', // 48px minimum height
+        icon: 'min-h-[2.75rem] min-w-[2.75rem] h-11 w-11', // 44px minimum touch area
       },
     },
     defaultVariants: {

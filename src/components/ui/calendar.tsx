@@ -50,6 +50,8 @@ export function Calendar({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
 
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
@@ -188,8 +190,10 @@ export function Calendar({
           role="gridcell"
           tabIndex={isAvailable ? 0 : -1}
           className={`
-            p-4 rounded-lg font-medium transition-all relative
+            p-3 sm:p-3 md:p-4 rounded-lg font-medium transition-all relative touch-manipulation
             ${bgClass} ${cursorClass} ${hoverClass} ${selectedClass} ${todayClass}
+            text-xs sm:text-sm md:text-base min-h-[2.75rem] sm:min-h-[3rem] md:min-h-[3.5rem]
+            flex items-center justify-center
           `}
           onClick={handleClick}
           onKeyDown={handleKeyDown}
@@ -199,9 +203,9 @@ export function Calendar({
         >
           {dayNumber}
           
-          {/* Tooltip */}
+          {/* Tooltip - Hidden on mobile to avoid touch conflicts */}
           {hoveredDate === dateStr && getTooltipContent() && (
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap z-10">
+            <div className="hidden sm:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap z-10">
               {getTooltipContent()}
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
             </div>
@@ -211,6 +215,40 @@ export function Calendar({
     }
 
     return days;
+  };
+
+  // Handle touch gestures for mobile swipe navigation
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchStartY(e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null || touchStartY === null) {
+      return;
+    }
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaX = touchStartX - touchEndX;
+    const deltaY = touchStartY - touchEndY;
+
+    // Check if horizontal swipe is dominant (more horizontal than vertical)
+    const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
+    const minSwipeDistance = 50; // Minimum swipe distance
+
+    if (isHorizontalSwipe && Math.abs(deltaX) > minSwipeDistance) {
+      if (deltaX > 0) {
+        // Swiped left - go to next month
+        goToNextMonth();
+      } else {
+        // Swiped right - go to previous month
+        goToPreviousMonth();
+      }
+    }
+
+    setTouchStartX(null);
+    setTouchStartY(null);
   };
 
   // Navigate months
@@ -255,24 +293,28 @@ export function Calendar({
   }
 
   return (
-    <div className={`bg-white rounded-2xl p-4 md:p-8 border border-gray-200 ${className}`}>
+    <div 
+      className={`bg-white rounded-2xl p-3 sm:p-4 md:p-8 border border-gray-200 ${className}`}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Calendar Header */}
-      <div className="flex justify-between items-center mb-6 md:mb-8">
-        <h3 className="text-xl md:text-2xl font-bold">
+      <div className="flex justify-between items-center mb-4 sm:mb-6 md:mb-8">
+        <h3 className="text-lg sm:text-xl md:text-2xl font-bold">
           {MONTH_NAMES[currentMonth]} {currentYear}
         </h3>
-        <div className="flex gap-2 md:gap-4">
+        <div className="flex gap-2 sm:gap-3 md:gap-4">
           <button
             aria-label="Previous month"
             onClick={goToPreviousMonth}
-            className="bg-gray-100 border-none p-2 md:p-3 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors text-gray-600"
+            className="bg-gray-100 border-none p-3 sm:p-2 md:p-3 rounded-lg cursor-pointer hover:bg-gray-200 active:bg-gray-300 transition-colors text-gray-600 text-base sm:text-lg touch-manipulation"
           >
             ◀
           </button>
           <button
             aria-label="Next month"
             onClick={goToNextMonth}
-            className="bg-gray-100 border-none p-2 md:p-3 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors text-gray-600"
+            className="bg-gray-100 border-none p-3 sm:p-2 md:p-3 rounded-lg cursor-pointer hover:bg-gray-200 active:bg-gray-300 transition-colors text-gray-600 text-base sm:text-lg touch-manipulation"
           >
             ▶
           </button>
@@ -284,11 +326,11 @@ export function Calendar({
         role="grid"
         aria-label="Calendar"
         data-testid="calendar-grid"
-        className="grid grid-cols-7 gap-1 md:gap-2 text-center"
+        className="grid grid-cols-7 gap-1 sm:gap-1 md:gap-2 text-center"
       >
         {/* Day Headers */}
         {DAY_NAMES.map(day => (
-          <div key={day} className="font-bold p-2 md:p-4 text-gray-600 text-sm md:text-base">
+          <div key={day} className="font-bold p-1 sm:p-2 md:p-4 text-gray-600 text-xs sm:text-sm md:text-base">
             {day}
           </div>
         ))}
@@ -299,15 +341,20 @@ export function Calendar({
 
       {/* Calendar Summary */}
       {calendarData && (
-        <div className="mt-6 md:mt-8 flex flex-wrap justify-center gap-4 text-sm">
-          <div className="text-gray-600">
+        <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap justify-center gap-3 sm:gap-4 text-xs sm:text-sm">
+          <div className="text-gray-600 bg-green-50 px-2 py-1 rounded">
             <strong>{calendarData.availableDays}</strong> available
           </div>
-          <div className="text-gray-600">
+          <div className="text-gray-600 bg-red-50 px-2 py-1 rounded">
             <strong>{calendarData.bookedDays}</strong> booked/pending
           </div>
         </div>
       )}
+      
+      {/* Mobile swipe instruction */}
+      <div className="sm:hidden mt-3 text-center text-xs text-gray-500">
+        👈 Swipe left/right to change months
+      </div>
     </div>
   );
 }

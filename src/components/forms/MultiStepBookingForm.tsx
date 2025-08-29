@@ -281,19 +281,19 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
     switch (currentStep) {
       case 0:
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-brand-charcoal">Select Services</h2>
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-brand-charcoal">Select Services</h2>
             <p className="text-brand-dark-gray">Choose the services you need for your event</p>
             
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {SERVICES.map((service) => (
-                <div key={service.id} className="border border-gray-200 rounded-lg p-4">
+                <div key={service.id} className="border border-gray-200 rounded-lg p-3 sm:p-4">
                   <label className="flex items-start space-x-3 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.services.includes(service.id)}
                       onChange={() => handleServiceToggle(service.id)}
-                      className="mt-1 h-5 w-5 text-brand-gold focus:ring-brand-gold border-gray-300 rounded"
+                      className="mt-1 h-6 w-6 text-brand-gold focus:ring-brand-gold border-gray-300 rounded"
                     />
                     <div className="flex-1">
                       <h3 className="font-semibold text-brand-charcoal">{service.name}</h3>
@@ -329,11 +329,11 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
 
       case 1:
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-brand-charcoal">Select Date & Time</h2>
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-brand-charcoal">Select Date & Time</h2>
             <p className="text-brand-dark-gray">When is your event taking place?</p>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div>
                 <label htmlFor="eventDate" className="block text-sm font-medium text-brand-charcoal mb-2">
                   Event Date *
@@ -343,7 +343,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                   id="eventDate"
                   value={formData.eventDate || ''}
                   onChange={(e) => updateFormData({ eventDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-gold focus:border-brand-gold"
+                  className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold text-base sm:text-sm"
                 />
                 {errors.eventDate && (
                   <p className="text-red-600 text-sm mt-1">{errors.eventDate}</p>
@@ -359,7 +359,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                   id="eventTime"
                   value={formData.eventTime || ''}
                   onChange={(e) => updateFormData({ eventTime: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-gold focus:border-brand-gold"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
                 />
                 {errors.eventTime && (
                   <p className="text-red-600 text-sm mt-1">{errors.eventTime}</p>
@@ -376,7 +376,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 id="eventEndTime"
                 value={formData.eventEndTime || ''}
                 onChange={(e) => updateFormData({ eventEndTime: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-gold focus:border-brand-gold max-w-xs"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold max-w-xs"
               />
             </div>
           </div>
@@ -396,7 +396,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 id="eventType"
                 value={formData.eventType || ''}
                 onChange={(e) => updateFormData({ eventType: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-gold focus:border-brand-gold"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
               >
                 <option value="">Select event type</option>
                 <option value="wedding">Wedding</option>
@@ -421,7 +421,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 value={formData.venue || ''}
                 onChange={(e) => updateFormData({ venue: e.target.value })}
                 placeholder="e.g., The Grand Ballroom"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-gold focus:border-brand-gold"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
               />
               {errors.venue && (
                 <p className="text-red-600 text-sm mt-1">{errors.venue}</p>
@@ -438,7 +438,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 onChange={(e) => updateFormData({ venueAddress: e.target.value })}
                 placeholder="Full venue address"
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-gold focus:border-brand-gold"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
               />
             </div>
 
@@ -452,7 +452,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 value={formData.guestCount || ''}
                 onChange={(e) => updateFormData({ guestCount: parseInt(e.target.value) || undefined })}
                 placeholder="e.g., 50"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-gold focus:border-brand-gold max-w-xs"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold max-w-xs"
               />
             </div>
 
@@ -466,7 +466,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 onChange={(e) => updateFormData({ specialRequests: e.target.value })}
                 placeholder="Any specific songs, equipment needs, or special requirements..."
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-gold focus:border-brand-gold"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
               />
             </div>
           </div>
@@ -488,7 +488,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 value={formData.clientName || ''}
                 onChange={(e) => updateFormData({ clientName: e.target.value })}
                 placeholder="Your full name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-gold focus:border-brand-gold"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
               />
               {errors.clientName && (
                 <p className="text-red-600 text-sm mt-1">{errors.clientName}</p>
@@ -505,7 +505,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 value={formData.clientEmail || ''}
                 onChange={(e) => updateFormData({ clientEmail: e.target.value })}
                 placeholder="your.email@example.com"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-gold focus:border-brand-gold"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
               />
               {errors.clientEmail && (
                 <p className="text-red-600 text-sm mt-1">{errors.clientEmail}</p>
@@ -522,7 +522,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 value={formData.clientPhone || ''}
                 onChange={(e) => updateFormData({ clientPhone: e.target.value })}
                 placeholder="(555) 123-4567"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-gold focus:border-brand-gold"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
               />
               {errors.clientPhone && (
                 <p className="text-red-600 text-sm mt-1">{errors.clientPhone}</p>
@@ -586,15 +586,15 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-2xl mx-auto p-4 sm:p-6">
       {/* Progress Indicator */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <div className="flex items-center justify-between">
           {STEPS.map((step, index) => (
             <div key={step} className="flex items-center">
               <div
                 data-testid={`step-${index + 1}`}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
                   index <= currentStep
                     ? 'bg-brand-gold text-white active'
                     : 'bg-gray-200 text-gray-500'
@@ -603,7 +603,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 {index + 1}
               </div>
               {index < STEPS.length - 1 && (
-                <div className={`w-12 h-0.5 mx-2 ${
+                <div className={`w-6 sm:w-12 h-0.5 mx-1 sm:mx-2 ${
                   index < currentStep ? 'bg-brand-gold' : 'bg-gray-200'
                 }`} />
               )}
@@ -613,7 +613,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
         <div className="flex items-center justify-between mt-2">
           {STEPS.map((step, index) => (
             <div key={step} className="flex-1 text-center">
-              <p className={`text-xs ${
+              <p className={`text-xs sm:text-sm ${
                 index <= currentStep ? 'text-brand-charcoal font-medium' : 'text-gray-500'
               }`}>
                 {step}
@@ -629,13 +629,14 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between">
-        <div className="flex space-x-3">
+      <div className="flex flex-col sm:flex-row justify-between space-y-3 sm:space-y-0">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
           {currentStep > 0 && (
             <Button
               type="button"
               variant="outline"
               onClick={handleBack}
+              className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
             >
               Back
             </Button>
@@ -644,17 +645,18 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
             type="button"
             variant="outline"
             onClick={onCancel}
+            className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
           >
             Cancel
           </Button>
         </div>
 
-        <div>
+        <div className="w-full sm:w-auto">
           {currentStep < STEPS.length - 1 ? (
             <Button
               type="button"
               onClick={handleNext}
-              className="bg-brand-gold hover:bg-brand-dark-gold text-white"
+              className="bg-brand-gold hover:bg-brand-dark-gold text-white w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
             >
               Next
             </Button>
@@ -662,9 +664,10 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
             <Button
               type="button"
               onClick={handleSubmit}
-              className="bg-brand-gold hover:bg-brand-dark-gold text-white"
+              className="bg-brand-gold hover:bg-brand-dark-gold text-white w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+              disabled={bookingState.isSubmitting}
             >
-              Submit Booking
+              {bookingState.isSubmitting ? 'Submitting...' : 'Submit Booking'}
             </Button>
           )}
         </div>

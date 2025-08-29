@@ -143,7 +143,7 @@ export function CalendarManagement() {
         <div
           key={dateStr}
           data-testid={`calendar-date-${dateStr}`}
-          className={`p-3 rounded cursor-pointer transition-all relative ${bgClass} ${selectedClass}`}
+          className={`min-h-[2.75rem] min-w-[2.75rem] p-4 rounded cursor-pointer transition-all relative touch-manipulation flex flex-col justify-center items-center ${bgClass} ${selectedClass}`}
           onClick={() => setSelectedDate(dateStr)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
@@ -237,10 +237,10 @@ export function CalendarManagement() {
           Back to Dashboard
         </Link>
       </div>
-      <h1 className="text-2xl font-bold mb-6">Calendar Management</h1>
+      <h1 data-testid="month-title" className="text-lg sm:text-xl lg:text-2xl font-bold mb-6">Calendar Management</h1>
       
       {/* Calendar Controls */}
-      <div data-testid="calendar-controls" className="flex justify-between items-center mb-6">
+      <div data-testid="month-navigation" className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 px-4 sm:px-6">
         <h2 className="text-xl font-semibold">
           {MONTH_NAMES[currentMonth]} {currentYear}
         </h2>
@@ -250,7 +250,7 @@ export function CalendarManagement() {
             data-testid="prev-month-btn"
             aria-label="Previous month"
             onClick={goToPreviousMonth}
-            className="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="min-h-[2.75rem] min-w-[2.75rem] px-4 py-3 bg-gray-200 rounded hover:bg-gray-300 touch-manipulation flex items-center justify-center"
           >
             ←
           </button>
@@ -260,7 +260,7 @@ export function CalendarManagement() {
               data-testid="month-selector"
               value={currentMonth}
               onChange={(e) => handleMonthSelectorChange(e.target.value)}
-              className="border rounded px-2 py-1"
+              className="border rounded min-h-[2.75rem] px-3 py-2 touch-manipulation"
             >
               {MONTH_NAMES.map((month, index) => (
                 <option key={month} value={index}>
@@ -273,7 +273,7 @@ export function CalendarManagement() {
               data-testid="year-selector"
               value={currentYear}
               onChange={(e) => handleYearSelectorChange(e.target.value)}
-              className="border rounded px-2 py-1"
+              className="border rounded min-h-[2.75rem] px-3 py-2 touch-manipulation"
             >
               {Array.from({ length: 5 }, (_, i) => currentYear - 2 + i).map(year => (
                 <option key={year} value={year}>
@@ -287,7 +287,7 @@ export function CalendarManagement() {
             data-testid="next-month-btn"
             aria-label="Next month"
             onClick={goToNextMonth}
-            className="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="min-h-[2.75rem] min-w-[2.75rem] px-4 py-3 bg-gray-200 rounded hover:bg-gray-300 touch-manipulation flex items-center justify-center"
           >
             →
           </button>
@@ -298,7 +298,7 @@ export function CalendarManagement() {
       <div
         data-testid="calendar-grid"
         role="grid"
-        className="grid grid-cols-7 gap-2 mb-6"
+        className="grid grid-cols-7 gap-1 sm:gap-2 mb-6"
       >
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
           <div key={day} className="p-2 text-center font-semibold text-gray-600">
@@ -312,22 +312,22 @@ export function CalendarManagement() {
       {selectedDate && (
         <div data-testid="date-actions" className="mb-6 p-4 bg-gray-50 rounded">
           <h3 className="font-semibold mb-3">Actions for {selectedDate}</h3>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={() => setDialog({ type: 'block', isOpen: true, reason: '', startDate: '', endDate: '' })}
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              className="min-h-[2.75rem] px-4 py-3 bg-red-500 text-white rounded hover:bg-red-600 touch-manipulation"
             >
               Block Date
             </button>
             <button
               onClick={() => setDialog({ type: 'unblock', isOpen: true, reason: '', startDate: '', endDate: '' })}
-              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              className="min-h-[2.75rem] px-4 py-3 bg-green-500 text-white rounded hover:bg-green-600 touch-manipulation"
             >
               Unblock Date
             </button>
             <button
               onClick={handleMaintenanceBlock}
-              className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+              className="min-h-[2.75rem] px-4 py-3 bg-orange-500 text-white rounded hover:bg-orange-600 touch-manipulation"
             >
               Set Maintenance
             </button>
@@ -339,7 +339,7 @@ export function CalendarManagement() {
       <div data-testid="bulk-actions" className="mb-6">
         <button
           onClick={() => setDialog({ type: 'range', isOpen: true, reason: '', startDate: '', endDate: '' })}
-          className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+          className="min-h-[2.75rem] px-4 py-3 bg-purple-500 text-white rounded hover:bg-purple-600 touch-manipulation"
         >
           Block Date Range
         </button>

@@ -88,14 +88,14 @@ describe('Button Component', () => {
       render(<Button>Default Size</Button>);
       
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('h-10', 'px-4', 'py-2');
+      expect(button).toHaveClass('min-h-[2.75rem]', 'h-11', 'px-4', 'py-2');
     });
 
     it('should apply small size correctly', () => {
       render(<Button size="sm">Small Button</Button>);
       
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('h-9', 'px-3');
+      expect(button).toHaveClass('min-h-[2.75rem]', 'h-10', 'px-3', 'py-1');
     });
 
     it('should apply large size correctly', () => {
@@ -116,7 +116,7 @@ describe('Button Component', () => {
       render(<Button size="icon">🔥</Button>);
       
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('h-10', 'w-10');
+      expect(button).toHaveClass('min-h-[2.75rem]', 'min-w-[2.75rem]', 'h-11', 'w-11');
     });
   });
 

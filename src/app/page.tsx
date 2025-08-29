@@ -92,6 +92,7 @@ const _sampleVideoTestimonials = [
 
 export default function HomePage() {
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [bookingInitialData, setBookingInitialData] = useState<Partial<any>>({});
 
   const handleBookingComplete = async (_formData: any) => {
@@ -150,49 +151,91 @@ export default function HomePage() {
           </div>
           
           {/* Mobile menu button */}
-          <button className="md:hidden text-brand-charcoal">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+          <button 
+            className="md:hidden text-brand-charcoal p-3 rounded-lg hover:bg-gray-100 transition-colors"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+          >
+            {mobileMenuOpen ? (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
           </button>
         </div>
+        
+        {/* Mobile menu dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
+            <div className="px-4 py-4 space-y-3">
+              <a href="#services" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)}>
+                Services
+              </a>
+              <a href="#gallery" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)}>
+                Gallery
+              </a>
+              <a href="#availability" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)}>
+                Availability
+              </a>
+              <a href="#pricing" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)}>
+                Pricing
+              </a>
+              <a href="#contact" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)}>
+                Contact
+              </a>
+              <button
+                onClick={() => {
+                  handleShowBookingForm();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full bg-brand-gold text-brand-charcoal px-4 py-3 rounded-lg font-semibold hover:bg-yellow-400 transition-colors text-center mt-4"
+              >
+                Get a Quote
+              </button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-brand-charcoal via-purple-900 to-brand-gold min-h-[60vh] flex items-center justify-center text-white mt-20">
-        <div className="max-w-7xl mx-auto px-8 py-16 grid md:grid-cols-2 gap-16 items-center">
-          <div>
-            <div className="text-sm mb-4 opacity-90 font-medium tracking-wide uppercase">
+      <section className="bg-gradient-to-br from-brand-charcoal via-purple-900 to-brand-gold min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center text-white mt-16 sm:mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+          <div className="text-center lg:text-left">
+            <div className="text-xs sm:text-sm mb-3 sm:mb-4 opacity-90 font-medium tracking-wide uppercase">
               Premium Party Pros
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
               Dapper Squad<br />
               Entertainment
             </h1>
-            <p className="text-xl mb-8 opacity-90 leading-relaxed">
+            <p className="text-lg sm:text-xl mb-6 sm:mb-8 opacity-90 leading-relaxed max-w-2xl mx-auto lg:mx-0">
               Full-service DJ, karaoke, and event photography for Chicago–Milwaukee events. Flat pricing, fast booking, great vibes.
             </p>
             <HeroButtons onRequestDate={handleShowBookingForm} />
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 mt-12">
+            <div className="grid grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mt-8 sm:mt-12">
               <div className="text-center">
-                <div className="text-3xl font-bold mb-2">300+</div>
-                <div className="text-sm opacity-80 leading-tight">Events<br />Experience</div>
+                <div className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">300+</div>
+                <div className="text-xs sm:text-sm opacity-80 leading-tight">Events<br />Experience</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold mb-2">5★</div>
-                <div className="text-sm opacity-80 leading-tight">Rated<br />Reviews</div>
+                <div className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">5★</div>
+                <div className="text-xs sm:text-sm opacity-80 leading-tight">Rated<br />Reviews</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold mb-2">24/7</div>
-                <div className="text-sm opacity-80 leading-tight">Requests<br />Fast booking</div>
+                <div className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">24/7</div>
+                <div className="text-xs sm:text-sm opacity-80 leading-tight">Requests<br />Fast booking</div>
               </div>
             </div>
           </div>
 
           {/* Next Step Box */}
-          <div className="bg-white rounded-2xl p-8 text-brand-charcoal shadow-xl">
+          <div className="bg-white rounded-2xl p-6 sm:p-8 text-brand-charcoal shadow-xl mx-4 sm:mx-0">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-6 h-6 bg-brand-gold rounded-full flex items-center justify-center text-brand-charcoal text-sm font-bold">
                 1
@@ -246,16 +289,16 @@ export default function HomePage() {
       </section>
 
       {/* Services */}
-      <section id="services" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-8">
-          <h2 className="text-4xl font-bold mb-4 text-brand-charcoal">
+      <section id="services" className="py-12 sm:py-16 lg:py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-brand-charcoal text-center">
             Services
           </h2>
-          <p className="text-lg text-gray-600 mb-12">
+          <p className="text-base sm:text-lg text-gray-600 mb-8 sm:mb-12 text-center max-w-2xl mx-auto">
             Pick one—or bundle for best value.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* DJ Services */}
             <div className="p-8 rounded-2xl border border-gray-200 text-center hover:shadow-lg transition-shadow">
               <div className="w-15 h-15 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl text-white">
