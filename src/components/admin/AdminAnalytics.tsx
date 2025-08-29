@@ -13,6 +13,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { RevenueChart } from './charts/RevenueChart';
 import { ServicePopularityChart } from './charts/ServicePopularityChart';
 import { BookingTrendsChart } from './charts/BookingTrendsChart';
@@ -202,6 +203,17 @@ export function AdminAnalytics() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
+          <div className="flex items-center gap-4 mb-2">
+            <Link 
+              href="/admin" 
+              className="inline-flex items-center text-sm text-gray-600 hover:text-brand-gold transition-colors"
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Dashboard
+            </Link>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
           <p className="text-gray-600 mt-1">Business Performance Overview</p>
           <p className="text-sm text-gray-500 mt-1">

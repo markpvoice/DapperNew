@@ -8,6 +8,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useCalendarManagement } from '@/hooks/useCalendarManagement';
 
 const MONTH_NAMES = [
@@ -225,6 +226,17 @@ export function CalendarManagement() {
 
   return (
     <div data-testid="calendar-management" aria-label="Calendar Management" className="p-6">
+      <div className="flex items-center gap-4 mb-2">
+        <Link 
+          href="/admin" 
+          className="inline-flex items-center text-sm text-gray-600 hover:text-brand-gold transition-colors"
+        >
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Dashboard
+        </Link>
+      </div>
       <h1 className="text-2xl font-bold mb-6">Calendar Management</h1>
       
       {/* Calendar Controls */}
