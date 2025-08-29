@@ -6,54 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-
-export interface Booking {
-  id: string;
-  bookingReference: string;
-  clientName: string;
-  clientEmail: string;
-  clientPhone: string;
-  eventDate: string;
-  eventType: string;
-  services: string[];
-  venueName?: string;
-  venueAddress?: string;
-  guestCount?: number;
-  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
-  totalAmount?: number;
-  depositAmount?: number;
-  createdAt: string;
-}
-
-export interface BookingFilters {
-  status?: string;
-  eventType?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  search?: string;
-}
-
-export interface BookingSortOptions {
-  field: 'date' | 'amount' | 'name' | 'created';
-  direction: 'asc' | 'desc';
-}
-
-export interface UseBookingsReturn {
-  bookings: Booking[];
-  loading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
-  updateBookingStatus: (_id: string, _status: string) => Promise<boolean>;
-  deleteBooking: (_id: string) => Promise<boolean>;
-  filters: BookingFilters;
-  setFilters: (_filters: BookingFilters) => void;
-  sort: BookingSortOptions;
-  setSort: (_sort: BookingSortOptions) => void;
-  totalCount: number;
-  page: number;
-  setPage: (_page: number) => void;
-  pageSize: number;
-}
+import type { Booking, BookingFilters, BookingSortOptions, UseBookingsReturn } from '@/types/booking';
 
 export function useBookings(initialPageSize: number = 10): UseBookingsReturn {
   const [bookings, setBookings] = useState<Booking[]>([]);

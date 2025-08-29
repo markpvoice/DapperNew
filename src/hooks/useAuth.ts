@@ -6,25 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-
-export interface AuthUser {
-  id: number;
-  email: string;
-  name: string;
-  role: string;
-}
-
-export interface AuthState {
-  user: AuthUser | null;
-  loading: boolean;
-  error: string | null;
-}
-
-export interface AuthActions {
-  login: (_email: string, _password: string) => Promise<boolean>;
-  logout: () => Promise<void>;
-  verifyAuth: () => Promise<void>;
-}
+import type { AuthUser, AuthState, AuthActions } from '@/types/auth';
 
 export function useAuth(): AuthState & AuthActions {
   const [user, setUser] = useState<AuthUser | null>(null);

@@ -6,51 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-
-export interface DashboardStats {
-  totalBookings: number;
-  pendingBookings: number;
-  confirmedBookings: number;
-  completedBookings: number;
-  totalRevenue: number;
-  thisMonthRevenue: number;
-  averageBookingValue: number;
-  thisMonthBookings: number;
-  lastMonthBookings: number;
-  bookingGrowth: number;
-  revenueGrowth: number;
-}
-
-export interface UpcomingEvent {
-  id: string;
-  bookingReference: string;
-  clientName: string;
-  eventDate: string;
-  eventType: string;
-  status: string;
-  venueName?: string;
-}
-
-export interface RecentBooking {
-  id: string;
-  bookingReference: string;
-  clientName: string;
-  eventDate: string;
-  eventType: string;
-  status: string;
-  venueName?: string;
-  totalAmount: number;
-  createdAt: string;
-}
-
-export interface DashboardData {
-  stats: DashboardStats | null;
-  upcomingEvents: UpcomingEvent[];
-  recentBookings: RecentBooking[];
-  loading: boolean;
-  error: string | null;
-  refresh: () => void;
-}
+import type { DashboardStats, UpcomingEvent, RecentBooking, DashboardData } from '@/types/dashboard';
 
 export function useDashboardData(): DashboardData {
   const [stats, setStats] = useState<DashboardStats | null>(null);
