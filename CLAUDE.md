@@ -1,5 +1,17 @@
 # Dapper Squad Entertainment - Project Documentation
 
+## 🚨 **CRITICAL WORKFLOW REMINDER FOR ALL CLAUDE SESSIONS**
+
+**⚠️ BEFORE DOING ANY WORK: You MUST read the complete "MANDATORY DEVELOPMENT WORKFLOW - ENFORCE STRICTLY" section at the bottom of this document and follow ALL steps without exception.**
+
+**📋 MOST CRITICAL STEPS OFTEN MISSED:**
+1. ✅ Start development server (`npm run dev`) before testing
+2. ✅ Manually test in browser at http://localhost:3000 (not just automated tests)
+3. ✅ Update BOTH CLAUDE.md AND ToDo.md documentation 
+4. ✅ Push to GitHub when development workflow completes
+
+**🚫 DO NOT SKIP MANUAL BROWSER TESTING - This has been missed previously and causes incomplete implementations.**
+
 ## Project Overview
 This project involves upgrading a single-page HTML demo website (2.6MB with base64 images) into a modern, production-ready web application for Dapper Squad Entertainment - a Chicago-Milwaukee area DJ, Karaoke, and Photography service business.
 
@@ -1183,9 +1195,13 @@ ADMIN_PASSWORD_HASH="$2b$10$..."
 
 ---
 
-## 🚨 **MANDATORY DEVELOPMENT WORKFLOW & BEST PRACTICES**
+## 🚨 **MANDATORY DEVELOPMENT WORKFLOW - ENFORCE STRICTLY**
 
-**CRITICAL: These practices MUST be followed for every task without exception**
+**⚠️ CRITICAL FOR ALL CLAUDE SESSIONS: ANY Claude session working on this project MUST follow this workflow for EVERY task. No exceptions.**
+
+**🚫 DO NOT proceed with any code changes until ALL steps are completed in order.**
+
+**📋 WORKFLOW ENFORCEMENT: Each step must be explicitly acknowledged before proceeding to the next.**
 
 ### ⚡ **Required Pre-Work Checklist**
 Before starting ANY development task, ALWAYS:
@@ -1342,14 +1358,21 @@ npm run test          # Ensure all tests pass
 npm run build         # Verify production build works
 ```
 
-#### Step 4: Local Testing
+#### Step 4: Local Testing **🚨 MANDATORY - NEVER SKIP**
 ```bash
-# Test the application manually:
-# 1. Navigate to http://localhost:3000
-# 2. Test all implemented features
-# 3. Verify database operations in Prisma Studio
-# 4. Check browser console for errors
-# 5. Test responsive design on mobile
+# ⚠️ CRITICAL: This step MUST be completed manually by accessing the browser
+# 🚫 AUTOMATED TESTS ALONE ARE NOT SUFFICIENT
+
+# REQUIRED MANUAL TESTING CHECKLIST:
+# 1. ✅ START DEV SERVER: Ensure `npm run dev` is running on port 3000
+# 2. ✅ BROWSER ACCESS: Navigate to http://localhost:3000 and verify page loads
+# 3. ✅ FEATURE TESTING: Test all implemented features in the browser
+# 4. ✅ DATABASE VERIFICATION: Check operations in Prisma Studio at localhost:5555
+# 5. ✅ CONSOLE CHECK: Open browser DevTools and verify zero JavaScript errors
+# 6. ✅ MOBILE TESTING: Test responsive design on mobile viewport
+# 7. ✅ ADMIN PORTAL: If applicable, test admin routes (/admin, /admin/calendar, etc.)
+
+# 🚨 DO NOT MARK TASK COMPLETE UNTIL ALL BROWSER TESTING IS VERIFIED
 ```
 
 #### Step 5: Documentation & Commit
