@@ -18,30 +18,30 @@ export async function POST(_request: NextRequest) {
       message: 'Logout successful',
     });
 
-    // Clear all authentication cookies
+    // Clear all authentication cookies with proper path scoping
     response.cookies.set('access-token', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'strict', // Consistent security settings
       maxAge: 0, // Expire immediately
-      path: '/',
+      path: '/admin', // Match the path where it was set
     });
 
     response.cookies.set('refresh-token', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'strict', // Consistent security settings
       maxAge: 0, // Expire immediately
-      path: '/',
+      path: '/api/auth', // Match the path where it was set
     });
 
     // Clear legacy auth-token as well
     response.cookies.set('auth-token', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'strict', // Consistent security settings
       maxAge: 0, // Expire immediately
-      path: '/',
+      path: '/', // Legacy cookie is global
     });
 
     return response;

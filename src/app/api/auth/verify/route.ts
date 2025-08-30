@@ -41,30 +41,30 @@ export async function GET(request: NextRequest) {
         tokenRefreshed: true,
       });
 
-      // Set new tokens
+      // Set new tokens with enhanced security
       response.cookies.set('access-token', tokens.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'strict', // Enhanced CSRF protection
         maxAge: 60 * 60, // 1 hour
-        path: '/',
+        path: '/admin', // Scope to admin routes only
       });
 
       response.cookies.set('refresh-token', tokens.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'strict', // Enhanced CSRF protection
         maxAge: 7 * 24 * 60 * 60, // 7 days
-        path: '/',
+        path: '/api/auth', // Scope to auth endpoints only
       });
 
       // Keep legacy token for backward compatibility
       response.cookies.set('auth-token', tokens.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'strict', // Enhanced CSRF protection
         maxAge: 60 * 60, // 1 hour
-        path: '/',
+        path: '/', // Keep global for legacy compatibility
       });
 
       return response;

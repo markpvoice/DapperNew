@@ -23,10 +23,10 @@ const updateBookingSchema = z.object({
   services: z.array(z.string()).min(1).optional(),
   venueName: z.string().max(255).optional(),
   venueAddress: z.string().optional(),
-  guestCount: z.number().int().positive().optional(),
+  guestCount: z.coerce.number().int().positive().optional(),
   specialRequests: z.string().optional(),
-  totalAmount: z.number().positive().optional(),
-  depositAmount: z.number().positive().optional(),
+  totalAmount: z.coerce.number().positive().optional(),
+  depositAmount: z.coerce.number().positive().optional(),
   paymentStatus: z.enum(['UNPAID', 'DEPOSIT_PAID', 'PAID', 'REFUNDED', 'PARTIALLY_REFUNDED']).optional(),
 });
 

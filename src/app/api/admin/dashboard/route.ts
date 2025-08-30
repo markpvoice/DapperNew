@@ -3,12 +3,13 @@
  * GET /api/admin/dashboard - Get dashboard statistics and data
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
 // Force dynamic rendering for API routes that use request.cookies
 export const dynamic = 'force-dynamic';
 import { verifyAuth } from '@/lib/auth';
 import { getDashboardStats, getRecentBookings } from '@/lib/database';
+import { createSecureApiResponse, createUnauthorizedResponse, createSecureErrorResponse } from '@/lib/response-headers';
 
 /**
  * GET /api/admin/dashboard - Get dashboard data (admin only)
@@ -18,10 +19,7 @@ export async function GET(request: NextRequest) {
     // Verify admin authentication
     const authResult = await verifyAuth(request);
     if (!authResult.success || !authResult.user) {
-      return NextResponse.json(
-        { success: false, error: 'Authentication required' },
-        { status: 401 }
-      );
+      return createUnauthorizedResponse('Authentication required');
     }
 
     // Get dashboard statistics
@@ -128,7 +126,7 @@ export async function GET(request: NextRequest) {
       })),
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 15);
 
-    return NextResponse.json({
+    return createSecureApiResponse({
       success: true,
       dashboard: {
         // Main statistics
@@ -167,12 +165,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Dashboard API error:', error);
     
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Internal server error' 
-      },
-      { status: 500 }
-    );
+    return createSecureErrorResponse('Internal server error', 500);
   }
 }

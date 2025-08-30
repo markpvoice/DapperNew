@@ -3,12 +3,13 @@
  * GET /api/admin/analytics - Get detailed analytics and reports
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
 // Force dynamic rendering for API routes that use request.cookies or request.url
 export const dynamic = 'force-dynamic';
 import { z } from 'zod';
 import { verifyAuth } from '@/lib/auth';
+import { createSecureApiResponse, createUnauthorizedResponse, createSecureErrorResponse } from '@/lib/response-headers';
 
 // Query parameters schema
 const analyticsSchema = z.object({
@@ -24,10 +25,7 @@ export async function GET(request: NextRequest) {
     // Verify admin authentication
     const authResult = await verifyAuth(request);
     if (!authResult.success || !authResult.user) {
-      return NextResponse.json(
-        { success: false, error: 'Authentication required' },
-        { status: 401 }
-      );
+      return createUnauthorizedResponse('Authentication required');
     }
 
     // Parse query parameters
@@ -36,13 +34,13 @@ export async function GET(request: NextRequest) {
     
     const validation = analyticsSchema.safeParse(queryParams);
     if (!validation.success) {
-      return NextResponse.json(
+      return createSecureApiResponse(
         {
           success: false,
           error: 'Invalid query parameters',
           details: validation.error.errors,
         },
-        { status: 400 }
+        400
       );
     }
 
@@ -200,7 +198,7 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    return NextResponse.json({
+    return createSecureApiResponse({
       success: true,
       period,
       dateRange: {
@@ -267,12 +265,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Analytics API error:', error);
     
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Internal server error' 
-      },
-      { status: 500 }
-    );
+    return createSecureErrorResponse('Internal server error', 500);
   }
 }

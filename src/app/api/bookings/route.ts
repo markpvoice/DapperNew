@@ -22,10 +22,10 @@ const createBookingSchema = z.object({
   services: z.array(z.string()).min(1, 'At least one service is required'),
   venueName: z.string().max(255).optional(),
   venueAddress: z.string().optional(),
-  guestCount: z.number().int().positive().optional(),
+  guestCount: z.coerce.number().int().positive().optional(),
   specialRequests: z.string().optional(),
-  totalAmount: z.number().positive().optional(),
-  depositAmount: z.number().positive().optional(),
+  totalAmount: z.coerce.number().positive().optional(),
+  depositAmount: z.coerce.number().positive().optional(),
 });
 
 // Query parameters schema for listing bookings
@@ -33,8 +33,8 @@ const listBookingsSchema = z.object({
   status: z.string().optional(),
   dateFrom: z.string().transform(str => str ? new Date(str) : undefined).optional(),
   dateTo: z.string().transform(str => str ? new Date(str) : undefined).optional(),
-  limit: z.string().transform(str => parseInt(str) || 50).optional(),
-  offset: z.string().transform(str => parseInt(str) || 0).optional(),
+  limit: z.coerce.number().int().positive().default(50),
+  offset: z.coerce.number().int().min(0).default(0),
 });
 
 /**
