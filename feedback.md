@@ -2,6 +2,15 @@
 
 This review highlights strengths and offers prioritized, actionable recommendations across security, performance, accessibility, UX, and developer experience. Focus is on “delightful UX” with production-ready practices.
 
+## Updates Since Last Review
+- Mobile navigation: New `src/components/ui/mobile-drawer.tsx` adds an accessible, touch-optimized drawer with backdrop closing, ESC handling, focus management, and body scroll lock. Nice work and a solid step toward delightful mobile UX.
+- Image optimization: New `OptimizedImage` wrapper and usage of Next `Image` in `service-card` and `video-testimonials` are great. The main gallery still uses `<img>`; consider migrating it to `Image` or to `OptimizedImage` for consistent performance benefits.
+- Config/security: CSP in `next.config.js` still includes `'unsafe-eval'` and `'unsafe-inline'`; no HSTS/Permissions-Policy headers yet. Cookies remain `sameSite: 'lax'` without `/admin` scoping.
+- Toast UX: `TOAST_REMOVE_DELAY` remains ~16.7 minutes; consider a 4–6s default with an explicit sticky option.
+- Rate limiting: `rate-limiter.ts` still marked TODO for DB persistence; applied on login only. Consider contact/booking too once table exists.
+- Caching: API routes use `export const dynamic = 'force-dynamic'` in many endpoints, but responses generally don’t set `Cache-Control: no-store` for authenticated/admin data.
+- TypeScript: `tsconfig.json` still targets `es5` with `allowJs: true`.
+
 ## Highlights
 - Robust API validation with Zod, consistent error responses, and thoughtful auth flows (access/refresh tokens).
 - Clean Next.js 14 app router structure; strong separation across `app`, `components`, `hooks`, `lib`, and `types`.
@@ -15,7 +24,7 @@ This review highlights strengths and offers prioritized, actionable recommendati
 - Rate limiting: back your placeholder implementation with a DB table to actually enforce limits on auth/contact endpoints.
 - Token cookies: consider `SameSite=strict` for admin cookies and path scoping; evaluate legacy `auth-token` removal plan.
 - Toast UX: auto-dismiss far sooner; current 1,000,000 ms (~16.7 min) risks sticky toasts and user friction.
-- Image performance: replace `<img>` with Next `Image` for gallery and hero assets (opt-in blur, sizes, and lazy priority).
+- Image performance: you’ve added `OptimizedImage` and some `next/image` usage — extend this to gallery/hero for full LCP gains (opt-in blur, sizes, priority).
 
 ## Security & Privacy
 - CSP in `next.config.js`:
@@ -59,11 +68,10 @@ This review highlights strengths and offers prioritized, actionable recommendati
   - `TOAST_REMOVE_DELAY = 1000000` (≈16.7 min). Change to 4–6 seconds for standard notifications; keep sticky toasts opt-in via a prop.
   - Consider queueing multiple toasts or increasing `TOAST_LIMIT` while avoiding overwhelm.
 - Images:
-  - `PhotoGallery` uses `<img>`; switch to Next `Image` for optimization (responsive `sizes`, blur placeholders, priority on LCP hero image).
-  - Ensure `next.config.js` `images.remotePatterns` covers all remote sources used by IG or CDN media.
+  - Good start with `OptimizedImage` and selective `next/image` usage. Migrate `PhotoGallery` thumbnails and lightbox to `Image` or to `OptimizedImage` for responsive `sizes`, blur placeholders, and native lazy loading.
+  - Ensure `next.config.js` `images.remotePatterns` covers all remote sources used by IG/CDN media.
 - Mobile navigation:
-  - Add focus trap and body scroll lock while the mobile menu is open for better accessibility (you already do this for lightbox; replicate pattern).
-  - Restore focus to menu button on close.
+  - Mobile drawer implements backdrop close, ESC support, body scroll lock, and initial focus — great. Add explicit focus trap (looping Tab within the drawer) and return focus to the trigger on close for full a11y polish.
 - Calendar:
   - Great keyboard support and ARIA labeling. Consider locale-driven first-day-of-week and timezone-safe comparisons for “past date”.
   - Provide a non-color-only indicator for availability (icons or patterns) to support low-vision users; you already include text in tooltips — good.
@@ -79,6 +87,7 @@ This review highlights strengths and offers prioritized, actionable recommendati
   - Hero and above-the-fold images should use `priority` and proper `sizes`; evaluate preloading hero fonts.
 - Bundles:
   - Inspect bundle via `next build` stats; consider splitting admin-only components and large charts to dynamic imports with `suspense`.
+  - Where suitable, use `dynamic(() => import(...), { ssr: false, loading: ... })` for chart-heavy views to defer cost off the landing page.
 - CSS & Tailwind:
   - Purge is built-in; avoid stray custom CSS where Tailwind suffices to reduce inlined styles that complicate CSP.
 - Database:
@@ -94,6 +103,7 @@ This review highlights strengths and offers prioritized, actionable recommendati
   - Add CI workflows (GitHub Actions) for: lint + typecheck + unit + e2e (optionally) on PRs; cache Playwright browsers.
   - Include `format:check` in CI to keep the repo tidy.
   - Consider per-package scripts for faster targeted runs (e.g., only API tests on API changes).
+  - Add a job to enforce security headers (CSP/HSTS) via an integration test or a small header-check utility in CI.
 
 ## Developer Experience
 - TypeScript config:
@@ -113,8 +123,8 @@ This review highlights strengths and offers prioritized, actionable recommendati
 - [ ] Tighten CSP, add HSTS and modern cross-origin headers.
 - [ ] Implement DB-backed rate limiter table and enable it for login/contact.
 - [ ] Reduce toast auto-dismiss to ~5s, allow sticky via prop.
-- [ ] Switch gallery/hero images to Next `Image` with `sizes` and blur placeholder.
-- [ ] Add focus trap + scroll lock to mobile nav; restore focus on close.
+- [ ] Extend `next/image`/`OptimizedImage` to gallery and hero with `sizes` + blur.
+- [ ] Add explicit focus trap and return-focus behavior to mobile drawer.
 - [ ] Use `z.coerce.number()` for numeric query/body fields that may arrive as strings.
 - [ ] Add `Cache-Control: no-store` for authenticated API responses.
 - [ ] Introduce GitHub Actions to run lint, typecheck, unit, and e2e tests.
@@ -127,4 +137,3 @@ This review highlights strengths and offers prioritized, actionable recommendati
 - Testing discipline across unit, integration, and e2e.
 
 If you’d like, I can follow up by drafting concrete diffs for the CSP/header hardening, a Prisma migration for rate limiting, and a minimal CI workflow file — or implement the image optimizations in `PhotoGallery` behind a feature flag.
-

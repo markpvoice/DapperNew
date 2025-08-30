@@ -4,6 +4,9 @@ import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { createBooking, type CreateBookingData } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { AnimatedProgressBar } from '@/components/ui/animated-progress-bar';
+import { ServiceCard } from '@/components/ui/service-card';
+import { CelebrationService } from '@/components/ui/celebration-service';
 
 // Types
 interface Service {
@@ -75,6 +78,7 @@ const STEPS = [
 
 export function MultiStepBookingForm({ onComplete, onCancel, initialData }: MultiStepBookingFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [formData, setFormData] = useState<BookingFormData>({
     services: [],
     ...initialData
@@ -184,9 +188,25 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
 
   const handleNext = useCallback(() => {
     if (validateStep(currentStep)) {
+      // Mark current step as completed and trigger celebration
+      if (!completedSteps.includes(currentStep)) {
+        setCompletedSteps(prev => [...prev, currentStep]);
+        
+        // Dispatch step completion event for celebrations
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('step-completed', {
+            detail: { 
+              step: currentStep, 
+              stepName: STEPS[currentStep], 
+              totalSteps: STEPS.length 
+            }
+          }));
+        }
+      }
+      
       setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
     }
-  }, [currentStep, validateStep]);
+  }, [currentStep, validateStep, completedSteps]);
 
   const handleBack = useCallback(() => {
     setCurrentStep(prev => Math.max(prev - 1, 0));
@@ -245,6 +265,18 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
           bookingReference: result.bookingId
         });
 
+        // Dispatch booking completion celebration
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('booking-completed', {
+            detail: {
+              bookingReference: result.bookingId,
+              clientName: formData.clientName,
+              services: formData.services,
+              eventDate: formData.eventDate
+            }
+          }));
+        }
+
         toast({
           title: "Booking Request Submitted!",
           description: "We'll contact you within 24-48 hours to confirm your booking.",
@@ -285,25 +317,19 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
             <h2 className="text-xl sm:text-2xl font-bold text-brand-charcoal">Select Services</h2>
             <p className="text-brand-dark-gray">Choose the services you need for your event</p>
             
-            <div className="space-y-3 sm:space-y-4">
-              {SERVICES.map((service) => (
-                <div key={service.id} className="border border-gray-200 rounded-lg p-3 sm:p-4">
-                  <label className="flex items-start space-x-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.services.includes(service.id)}
-                      onChange={() => handleServiceToggle(service.id)}
-                      className="mt-1 h-6 w-6 text-brand-gold focus:ring-brand-gold border-gray-300 rounded"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-brand-charcoal">{service.name}</h3>
-                      <p className="text-brand-dark-gray text-sm mt-1">{service.description}</p>
-                      <p className="text-brand-gold font-medium mt-2">
-                        ${service.priceRange.min} - ${service.priceRange.max}
-                      </p>
-                    </div>
-                  </label>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {SERVICES.map((service, index) => (
+                <ServiceCard
+                  key={service.id}
+                  id={service.id}
+                  name={service.name}
+                  description={service.description}
+                  priceRange={`$${service.priceRange.min} - $${service.priceRange.max}`}
+                  isSelected={formData.services.includes(service.id)}
+                  isPopular={index === 0} // Mark first service as popular for demo
+                  onSelect={handleServiceToggle}
+                  className="h-full"
+                />
               ))}
             </div>
 
@@ -587,40 +613,14 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
 
   return (
     <div className="max-w-2xl mx-auto p-4 sm:p-6">
-      {/* Progress Indicator */}
+      {/* Enhanced Progress Indicator */}
       <div className="mb-6 sm:mb-8">
-        <div className="flex items-center justify-between">
-          {STEPS.map((step, index) => (
-            <div key={step} className="flex items-center">
-              <div
-                data-testid={`step-${index + 1}`}
-                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
-                  index <= currentStep
-                    ? 'bg-brand-gold text-white active'
-                    : 'bg-gray-200 text-gray-500'
-                }`}
-              >
-                {index + 1}
-              </div>
-              {index < STEPS.length - 1 && (
-                <div className={`w-6 sm:w-12 h-0.5 mx-1 sm:mx-2 ${
-                  index < currentStep ? 'bg-brand-gold' : 'bg-gray-200'
-                }`} />
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="flex items-center justify-between mt-2">
-          {STEPS.map((step, index) => (
-            <div key={step} className="flex-1 text-center">
-              <p className={`text-xs sm:text-sm ${
-                index <= currentStep ? 'text-brand-charcoal font-medium' : 'text-gray-500'
-              }`}>
-                {step}
-              </p>
-            </div>
-          ))}
-        </div>
+        <AnimatedProgressBar
+          steps={STEPS}
+          currentStep={currentStep}
+          completedSteps={completedSteps}
+          className=""
+        />
       </div>
 
       {/* Step Content */}
@@ -672,6 +672,9 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
           )}
         </div>
       </div>
+      
+      {/* Celebration Service for animations */}
+      <CelebrationService />
     </div>
   );
 }

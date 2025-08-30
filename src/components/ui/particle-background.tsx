@@ -51,7 +51,7 @@ export function ParticleBackground({
       y: Math.random() * canvas.height,
       vx: (Math.random() - 0.5) * 0.5,
       vy: (Math.random() - 0.5) * 0.5,
-      size: Math.random() * 3 + 1,
+      size: Math.max(0.5, Math.random() * 3 + 1),
       opacity: Math.random() * 0.5 + 0.2,
       life: 0,
       maxLife: Math.random() * 300 + 200
@@ -68,15 +68,18 @@ export function ParticleBackground({
 
   // Update particle position and properties
   const updateParticle = useCallback((particle: Particle, canvas: HTMLCanvasElement) => {
+    const EPS = 1e-3;
     // Mouse interaction
     const dx = mouseRef.current.x - particle.x;
     const dy = mouseRef.current.y - particle.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    const distance = Math.hypot(dx, dy);
     
-    if (distance < 100) {
+    if (distance > EPS && distance < 100) {
       const force = (100 - distance) / 100;
-      particle.vx += (dx / distance) * force * 0.01;
-      particle.vy += (dy / distance) * force * 0.01;
+      const nx = dx / distance;
+      const ny = dy / distance;
+      particle.vx += nx * force * 0.01;
+      particle.vy += ny * force * 0.01;
     }
 
     // Update position
@@ -112,10 +115,32 @@ export function ParticleBackground({
       const newParticle = createParticle(canvas);
       Object.assign(particle, newParticle);
     }
+
+    // Sanitize non-finite values
+    if (
+      !Number.isFinite(particle.x) ||
+      !Number.isFinite(particle.y) ||
+      !Number.isFinite(particle.vx) ||
+      !Number.isFinite(particle.vy) ||
+      !Number.isFinite(particle.size) ||
+      particle.size <= 0 ||
+      !Number.isFinite(particle.opacity)
+    ) {
+      const newParticle = createParticle(canvas);
+      Object.assign(particle, newParticle);
+    }
   }, [createParticle]);
 
   // Render particle
   const renderParticle = (ctx: CanvasRenderingContext2D, particle: Particle) => {
+    if (
+      !Number.isFinite(particle.x) ||
+      !Number.isFinite(particle.y) ||
+      !Number.isFinite(particle.size) ||
+      particle.size <= 0
+    ) {
+      return;
+    }
     ctx.save();
     ctx.globalAlpha = particle.opacity;
     
@@ -151,7 +176,7 @@ export function ParticleBackground({
   // Animation loop
   const animate = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !isVisible || prefersReducedMotion) {
+    if (!canvas || !isVisible || prefersReducedMotion || canvas.width <= 0 || canvas.height <= 0) {
       return;
     }
 
@@ -196,8 +221,13 @@ export function ParticleBackground({
 
     const parent = canvas.parentElement;
     if (parent) {
-      canvas.width = parent.clientWidth;
-      canvas.height = parent.clientHeight;
+      const width = parent.clientWidth;
+      const height = parent.clientHeight;
+      if (width <= 0 || height <= 0) {
+        return;
+      }
+      canvas.width = width;
+      canvas.height = height;
       initParticles(canvas);
     }
   }, [initParticles]);
