@@ -18,6 +18,24 @@ import { RevenueChart } from './charts/RevenueChart';
 import { ServicePopularityChart } from './charts/ServicePopularityChart';
 import { BookingTrendsChart } from './charts/BookingTrendsChart';
 
+// Hook to detect mobile viewport
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
+  return isMobile;
+}
+
 interface AnalyticsData {
   success: boolean;
   period: string;
@@ -79,6 +97,7 @@ export function AdminAnalytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<keyof typeof periodLabels>('30d');
+  const isMobile = useIsMobile();
 
   const fetchAnalytics = useCallback(async () => {
     setLoading(true);
@@ -181,7 +200,7 @@ export function AdminAnalytics() {
           <p className="text-gray-600 mb-4">Failed to load analytics data</p>
           <button
             onClick={fetchAnalytics}
-            className="bg-brand-gold hover:bg-brand-dark-gold text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            className="bg-brand-gold hover:bg-brand-dark-gold text-white px-4 py-2 rounded-lg font-medium transition-colors min-h-[2.75rem] touch-manipulation focus:ring-2 focus:ring-brand-gold focus:outline-none"
           >
             Retry
           </button>
@@ -199,7 +218,7 @@ export function AdminAnalytics() {
   }
 
   return (
-    <div className="space-y-6" data-testid="analytics-dashboard">
+    <div className="space-y-4" data-testid="analytics-dashboard">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -214,7 +233,7 @@ export function AdminAnalytics() {
               Back to Dashboard
             </Link>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
           <p className="text-gray-600 mt-1">Business Performance Overview</p>
           <p className="text-sm text-gray-500 mt-1">
             {formatDate(data.dateRange.startDate)} - {formatDate(data.dateRange.endDate)}
@@ -226,7 +245,7 @@ export function AdminAnalytics() {
           <select
             value={period}
             onChange={(e) => handlePeriodChange(e.target.value as keyof typeof periodLabels)}
-            className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold"
+            className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold min-h-[2.75rem] touch-manipulation"
             aria-label="Time Period"
           >
             {Object.entries(periodLabels).map(([value, label]) => (
@@ -239,7 +258,7 @@ export function AdminAnalytics() {
           {/* Export Button */}
           <button
             onClick={handleExport}
-            className="bg-brand-charcoal hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            className="bg-brand-charcoal hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors min-h-[2.75rem] touch-manipulation focus:ring-2 focus:ring-brand-gold focus:outline-none"
           >
             Export Report
           </button>
@@ -247,40 +266,42 @@ export function AdminAnalytics() {
       </div>
 
       {/* Revenue Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="stats-grid">
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6" data-testid="stats-grid">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
           <h3 className="text-sm font-medium text-gray-500">Total Revenue</h3>
           <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(data.analytics.revenue.total)}</p>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
           <h3 className="text-sm font-medium text-gray-500">Deposits Collected</h3>
           <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(data.analytics.revenue.deposits)}</p>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
           <h3 className="text-sm font-medium text-gray-500">Average Booking</h3>
           <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(data.analytics.revenue.average)}</p>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
           <h3 className="text-sm font-medium text-gray-500">Total Bookings</h3>
           <p className="text-2xl font-bold text-gray-900 mt-1">{formatNumber(data.analytics.revenue.bookingsCount)}</p>
         </div>
       </div>
 
       {/* Revenue Chart */}
-      <RevenueChart 
-        data={data.analytics.bookings.dailyTrends.map(trend => ({
-          date: trend.date,
-          revenue: data.analytics.revenue.total / data.analytics.bookings.dailyTrends.length, // Mock even distribution
-          bookings: trend.count
-        }))}
-        title="Revenue & Booking Trends"
-        chartType="line"
-        showBookings={true}
-        height={350}
-      />
+      <div className="w-full">
+        <RevenueChart 
+          data={data.analytics.bookings.dailyTrends.map(trend => ({
+            date: trend.date,
+            revenue: data.analytics.revenue.total / data.analytics.bookings.dailyTrends.length, // Mock even distribution
+            bookings: trend.count
+          }))}
+          title="Revenue & Booking Trends"
+          chartType="line"
+          showBookings={true}
+          height={isMobile ? 250 : 350}
+        />
+      </div>
 
       {/* Booking Status Analytics */}
       <div className="bg-white p-6 rounded-lg shadow-sm border">
@@ -303,12 +324,14 @@ export function AdminAnalytics() {
       </div>
 
       {/* Service Popularity Chart */}
-      <ServicePopularityChart 
-        data={data.analytics.services.popularity}
-        title="Service Popularity Distribution"
-        showLegend={true}
-        height={350}
-      />
+      <div className="w-full">
+        <ServicePopularityChart 
+          data={data.analytics.services.popularity}
+          title="Service Popularity Distribution"
+          showLegend={true}
+          height={350}
+        />
+      </div>
 
       {/* Event Type Analytics */}
       <div className="bg-white p-6 rounded-lg shadow-sm border">
@@ -331,16 +354,18 @@ export function AdminAnalytics() {
       </div>
 
       {/* Booking Trends Chart */}
-      <BookingTrendsChart 
-        data={data.analytics.bookings.dailyTrends.map(trend => ({
-          date: trend.date,
-          bookings: trend.count,
-          revenue: data.analytics.revenue.total / data.analytics.bookings.dailyTrends.length // Mock even distribution
-        }))}
-        title="Daily Booking Trends"
-        showPeriodSelector={true}
-        height={350}
-      />
+      <div className="w-full">
+        <BookingTrendsChart 
+          data={data.analytics.bookings.dailyTrends.map(trend => ({
+            date: trend.date,
+            bookings: trend.count,
+            revenue: data.analytics.revenue.total / data.analytics.bookings.dailyTrends.length // Mock even distribution
+          }))}
+          title="Daily Booking Trends"
+          showPeriodSelector={true}
+          height={isMobile ? 200 : 300}
+        />
+      </div>
 
       {/* Conversion Funnel */}
       <div className="bg-white p-6 rounded-lg shadow-sm border">

@@ -604,9 +604,6 @@ export default function HomePage() {
                 <li>Deposit secures your booking.</li>
               </ol>
 
-              <p className="text-gray-500 text-sm italic mt-8">
-                Demo note: This site stores requests locally in your browser.
-              </p>
             </div>
           </div>
         </div>
