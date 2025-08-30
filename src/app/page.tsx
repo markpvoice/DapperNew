@@ -6,7 +6,9 @@ import { CalendarSection } from '@/components/ui/calendar-section';
 import { PhotoGallery } from '@/components/ui/photo-gallery';
 // import { VideoTestimonials } from '@/components/ui/video-testimonials';
 // import { SocialMediaIntegration } from '@/components/ui/social-media-integration';
-import { HeroButtons } from '@/components/ui/hero-buttons';
+import { AnimatedHeroButtons } from '@/components/ui/animated-hero-buttons';
+import { AnimatedStats } from '@/components/ui/animated-stats';
+import { ParticleBackground } from '@/components/ui/particle-background';
 import { MultiStepBookingForm } from '@/components/forms/MultiStepBookingForm';
 
 // Gallery photos using actual uploaded images
@@ -202,8 +204,11 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-brand-charcoal via-purple-900 to-brand-gold min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center text-white mt-16 sm:mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+      <section className="bg-gradient-to-br from-brand-charcoal via-purple-900 to-brand-gold min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center text-white mt-16 sm:mt-20 relative overflow-hidden">
+        {/* Particle Background */}
+        <ParticleBackground />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10">
           <div className="text-center lg:text-left">
             <div className="text-xs sm:text-sm mb-3 sm:mb-4 opacity-90 font-medium tracking-wide uppercase">
               Premium Party Pros
@@ -215,23 +220,17 @@ export default function HomePage() {
             <p className="text-lg sm:text-xl mb-6 sm:mb-8 opacity-90 leading-relaxed max-w-2xl mx-auto lg:mx-0">
               Full-service DJ, karaoke, and event photography for Chicago–Milwaukee events. Flat pricing, fast booking, great vibes.
             </p>
-            <HeroButtons onRequestDate={handleShowBookingForm} />
+            <AnimatedHeroButtons onRequestDate={handleShowBookingForm} />
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mt-8 sm:mt-12">
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">300+</div>
-                <div className="text-xs sm:text-sm opacity-80 leading-tight">Events<br />Experience</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">5★</div>
-                <div className="text-xs sm:text-sm opacity-80 leading-tight">Rated<br />Reviews</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">24/7</div>
-                <div className="text-xs sm:text-sm opacity-80 leading-tight">Requests<br />Fast booking</div>
-              </div>
-            </div>
+            {/* Animated Stats */}
+            <AnimatedStats 
+              stats={[
+                { value: 300, label: 'Events\nExperience', suffix: '+' },
+                { value: 5, label: 'Rated\nReviews', suffix: '★' },
+                { value: 24, label: 'Requests\nFast booking', suffix: '/7' }
+              ]}
+              className="mt-8 sm:mt-12"
+            />
           </div>
 
           {/* Next Step Box */}
