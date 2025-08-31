@@ -3,7 +3,7 @@
 export interface CreateBookingData {
   services: string[];
   eventDate: string;
-  eventTime?: string;
+  eventStartTime?: string;
   eventEndTime?: string;
   eventType: string;
   venue: string;
@@ -24,6 +24,15 @@ export interface BookingResponse {
 export interface AvailabilityResponse {
   available: boolean;
   date: string;
+}
+
+export interface MonthAvailabilityResponse {
+  success: boolean;
+  month: number;
+  year: number;
+  availableDates: string[];
+  totalAvailable: number;
+  error?: string;
 }
 
 /**
@@ -58,13 +67,27 @@ export async function createBooking(data: CreateBookingData): Promise<BookingRes
  */
 export async function checkAvailability(date: string): Promise<AvailabilityResponse> {
   try {
-    const response = await fetch(`/api/bookings/availability?date=${encodeURIComponent(date)}`);
+    // Parse the date to extract month and year for the API
+    const dateObj = new Date(date);
+    const month = dateObj.getMonth() + 1; // Convert 0-based to 1-based month
+    const year = dateObj.getFullYear();
+    
+    const response = await fetch(`/api/bookings/availability?month=${month}&year=${year}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const result = await response.json();
+    
+    // Check if the specific date is in the available dates array
+    const dateStr = date; // Assuming date is already in YYYY-MM-DD format
+    const isAvailable = result.success && result.availableDates?.includes(dateStr);
+    
+    return {
+      available: isAvailable,
+      date: dateStr
+    };
   } catch (error) {
     console.error('Availability check failed:', error);
     return {

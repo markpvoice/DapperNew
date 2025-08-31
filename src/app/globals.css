@@ -85,6 +85,13 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 /* Custom animations */
 @keyframes shimmer {
   0% {
@@ -185,6 +192,43 @@ html {
 @screen lg {
   .hero-title {
     @apply text-6xl;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all animations and transitions */
+  *, 
+  *::before, 
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Disable specific animations */
+  .animate-pulse,
+  .animate-bounce,
+  .animate-spin {
+    animation: none !important;
+  }
+
+  /* Disable custom animations */
+  .shimmer {
+    animation: none !important;
+    background: #f0f0f0;
+  }
+
+  /* Disable hover scale effects */
+  .service-card:hover,
+  .hover\\:scale-105:hover {
+    transform: none !important;
+  }
+
+  /* Keep transition for focus states for accessibility */
+  *:focus {
+    transition-duration: 0.15s !important;
   }
 }
 

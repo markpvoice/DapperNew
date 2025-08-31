@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 
 export interface Photo {
   id: string;
@@ -188,12 +189,13 @@ export function PhotoGallery({
               data-testid={`thumbnail-${photo.id}`}
               className={`relative ${ASPECT_RATIO_CLASSES[aspectRatio]} overflow-hidden`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={photo.thumbnail || photo.src}
                 alt={photo.alt}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                loading={lazyLoad ? 'lazy' : 'eager'}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                priority={!lazyLoad}
               />
               
               {/* Overlay */}
@@ -231,13 +233,16 @@ export function PhotoGallery({
           <div className="relative max-w-7xl max-h-full flex flex-col lg:flex-row gap-6 z-10">
             {/* Image */}
             <div className="relative flex-1 flex items-center justify-center min-h-0">
-              <div className="relative max-w-full max-h-full">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+              <div className="relative max-w-full max-h-[80vh] w-full">
+                <Image
                   data-testid="lightbox-image"
                   src={currentPhoto.src}
                   alt={currentPhoto.alt}
-                  className="max-w-full max-h-[80vh] w-auto h-auto object-contain"
+                  width={800}
+                  height={600}
+                  className="max-w-full max-h-full w-auto h-auto object-contain mx-auto"
+                  sizes="(max-width: 768px) 95vw, 80vw"
+                  priority
                 />
               </div>
             </div>

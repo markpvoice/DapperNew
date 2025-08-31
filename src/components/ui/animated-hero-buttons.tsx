@@ -99,7 +99,7 @@ export function AnimatedHeroButtons({
           min-h-[3.5rem] min-w-[12rem]
           ${!prefersReducedMotion ? 'animate-pulse-subtle' : ''}
         `}
-        data-testid="request-date-button"
+        data-testid="book-now-button"
         role="button"
         aria-label="Request your event date"
       >

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CalendarSection } from '@/components/ui/calendar-section';
 // Components for sections
 import { PhotoGallery } from '@/components/ui/photo-gallery';
@@ -96,6 +96,11 @@ export default function HomePage() {
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [bookingInitialData, setBookingInitialData] = useState<Partial<any>>({});
+  
+  // Focus management refs
+  const focusReturnRef = useRef<HTMLElement | null>(null);
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const modalContentRef = useRef<HTMLDivElement | null>(null);
 
   const handleBookingComplete = async (_formData: any) => {
     // Form submission is now handled within the MultiStepBookingForm
@@ -107,10 +112,24 @@ export default function HomePage() {
   };
 
   const handleShowBookingForm = (initialData?: any) => {
+    // Store the currently focused element for focus restoration
+    focusReturnRef.current = document.activeElement as HTMLElement;
+    
     if (initialData) {
       setBookingInitialData(initialData);
     }
     setShowBookingForm(true);
+  };
+  
+  const handleCloseBookingForm = () => {
+    setShowBookingForm(false);
+    setBookingInitialData({});
+    
+    // Restore focus to the element that opened the modal
+    if (focusReturnRef.current) {
+      focusReturnRef.current.focus();
+      focusReturnRef.current = null;
+    }
   };
 
   const handleCalendarDateSelect = (date: string) => {
@@ -118,10 +137,92 @@ export default function HomePage() {
     handleShowBookingForm({ eventDate: date });
   };
 
+  // Focus management and accessibility for modal
+  useEffect(() => {
+    if (showBookingForm) {
+      // Prevent background scrolling
+      document.body.style.overflow = 'hidden';
+      
+      // Hide background content from screen readers
+      const mainContent = document.querySelector('main') || document.querySelector('[role="main"]') || document.body;
+      if (mainContent && mainContent !== modalRef.current?.closest('body')) {
+        mainContent.setAttribute('aria-hidden', 'true');
+      }
+      
+      // Focus the modal content after it's rendered
+      setTimeout(() => {
+        if (modalContentRef.current) {
+          modalContentRef.current.focus();
+        }
+      }, 100);
+    } else {
+      // Restore background scrolling
+      document.body.style.overflow = '';
+      
+      // Restore screen reader access to background content
+      const mainContent = document.querySelector('main') || document.querySelector('[role="main"]') || document.body;
+      if (mainContent) {
+        mainContent.removeAttribute('aria-hidden');
+      }
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+      const mainContent = document.querySelector('main') || document.querySelector('[role="main"]') || document.body;
+      if (mainContent) {
+        mainContent.removeAttribute('aria-hidden');
+      }
+    };
+  }, [showBookingForm]);
+
+  // Focus trap handler
+  const handleModalKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      handleCloseBookingForm();
+      return;
+    }
+
+    if (event.key === 'Tab') {
+      if (!modalContentRef.current) {
+        return;
+      }
+
+      const focusableElements = modalContentRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (event.shiftKey) {
+        // Shift + Tab: move backwards
+        if (document.activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus();
+        }
+      } else {
+        // Tab: move forwards  
+        if (document.activeElement === lastElement) {
+          event.preventDefault();
+          firstElement.focus();
+        }
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
+      {/* Skip to main content link */}
+      <a 
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-brand-gold text-brand-charcoal px-4 py-2 rounded-lg font-semibold z-[60]"
+      >
+        Skip to main content
+      </a>
+      
       {/* Navigation Header */}
-      <nav className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-lg border-b border-gray-100 py-4">
+      <nav role="navigation" aria-label="Main navigation" className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-lg border-b border-gray-100 py-4">
         <div className="max-w-7xl mx-auto px-8 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-brand-gold rounded-full flex items-center justify-center text-brand-charcoal font-bold">
@@ -154,9 +255,12 @@ export default function HomePage() {
           
           {/* Mobile menu button */}
           <button 
+            id="mobile-menu-button"
             className="md:hidden text-brand-charcoal p-3 rounded-lg hover:bg-gray-100 transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle mobile menu"
+            aria-label={mobileMenuOpen ? "Close mobile menu" : "Open mobile menu"}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
           >
             {mobileMenuOpen ? (
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,21 +276,26 @@ export default function HomePage() {
         
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
+          <div 
+            id="mobile-menu"
+            className="md:hidden bg-white border-t border-gray-200 shadow-lg"
+            role="menu"
+            aria-labelledby="mobile-menu-button"
+          >
             <div className="px-4 py-4 space-y-3">
-              <a href="#services" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)}>
+              <a href="#services" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)} role="menuitem">
                 Services
               </a>
-              <a href="#gallery" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)}>
+              <a href="#gallery" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)} role="menuitem">
                 Gallery
               </a>
-              <a href="#availability" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)}>
+              <a href="#availability" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)} role="menuitem">
                 Availability
               </a>
-              <a href="#pricing" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)}>
+              <a href="#pricing" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)} role="menuitem">
                 Pricing
               </a>
-              <a href="#contact" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)}>
+              <a href="#contact" className="block text-brand-charcoal hover:text-brand-gold transition-colors py-3" onClick={() => setMobileMenuOpen(false)} role="menuitem">
                 Contact
               </a>
               <button
@@ -203,8 +312,10 @@ export default function HomePage() {
         )}
       </nav>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-brand-charcoal via-purple-900 to-brand-gold min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center text-white mt-16 sm:mt-20 relative overflow-hidden">
+      {/* Main Content */}
+      <main id="main-content" role="main">
+        {/* Hero Section */}
+        <section className="bg-gradient-to-br from-brand-charcoal via-purple-900 to-brand-gold min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center text-white mt-16 sm:mt-20 relative overflow-hidden">
         {/* Particle Background */}
         <ParticleBackground />
         
@@ -267,9 +378,9 @@ export default function HomePage() {
       </section>
 
       {/* Event Highlights */}
-      <section id="gallery" className="py-20 bg-brand-light-gray">
+      <section id="gallery" className="py-20 bg-brand-light-gray" role="region" aria-labelledby="gallery-heading">
         <div className="max-w-7xl mx-auto px-8">
-          <h2 className="text-4xl font-bold mb-4 text-brand-charcoal">
+          <h2 id="gallery-heading" className="text-4xl font-bold mb-4 text-brand-charcoal">
             Event Highlights
           </h2>
           <p className="text-lg text-gray-600 mb-12">
@@ -288,9 +399,9 @@ export default function HomePage() {
       </section>
 
       {/* Services */}
-      <section id="services" className="py-12 sm:py-16 lg:py-20 bg-white">
+      <section id="services" className="py-12 sm:py-16 lg:py-20 bg-white" role="region" aria-labelledby="services-heading">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-brand-charcoal text-center">
+          <h2 id="services-heading" className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-brand-charcoal text-center">
             Services
           </h2>
           <p className="text-base sm:text-lg text-gray-600 mb-8 sm:mb-12 text-center max-w-2xl mx-auto">
@@ -335,9 +446,9 @@ export default function HomePage() {
       </section>
 
       {/* Availability Calendar */}
-      <section id="availability" className="py-20 bg-brand-light-gray">
+      <section id="availability" className="py-20 bg-brand-light-gray" role="region" aria-labelledby="availability-heading">
         <div className="max-w-7xl mx-auto px-8">
-          <h2 className="text-4xl font-bold mb-4 text-brand-charcoal">
+          <h2 id="availability-heading" className="text-4xl font-bold mb-4 text-brand-charcoal">
             Availability
           </h2>
           <p className="text-lg text-gray-600 mb-12">
@@ -389,9 +500,9 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="py-20 bg-brand-light-gray">
+      <section id="testimonials" className="py-20 bg-brand-light-gray" role="region" aria-labelledby="testimonials-heading">
         <div className="max-w-7xl mx-auto px-8">
-          <h2 className="text-4xl font-bold mb-4 text-brand-charcoal">
+          <h2 id="testimonials-heading" className="text-4xl font-bold mb-4 text-brand-charcoal">
             Video Testimonials
           </h2>
           <p className="text-lg text-gray-600 mb-12">
@@ -564,9 +675,9 @@ export default function HomePage() {
       </section>
 
       {/* Contact */}
-      <section id="contact" className="py-20 bg-brand-light-gray">
+      <section id="contact" className="py-20 bg-brand-light-gray" role="region" aria-labelledby="contact-heading">
         <div className="max-w-7xl mx-auto px-8">
-          <h2 className="text-4xl font-bold mb-4 text-brand-charcoal">
+          <h2 id="contact-heading" className="text-4xl font-bold mb-4 text-brand-charcoal">
             Contact
           </h2>
           <p className="text-lg text-gray-600 mb-12">
@@ -607,9 +718,10 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
-      <footer className="bg-brand-charcoal text-white py-8 text-center">
+      <footer role="contentinfo" className="bg-brand-charcoal text-white py-8 text-center">
         <div className="max-w-7xl mx-auto px-8">
           <p className="m-0">
             © 2025 Dapper Squad Entertainment • Built for demo — single-file, responsive, accessibility-minded.
@@ -619,21 +731,42 @@ export default function HomePage() {
 
       {/* Booking Form Modal */}
       {showBookingForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div 
+          ref={modalRef}
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" 
+          data-testid="booking-modal"
+          role="dialog" 
+          aria-modal="true"
+          aria-labelledby="modal-title"
+          onKeyDown={handleModalKeyDown}
+          onClick={(e) => {
+            // Close modal when clicking backdrop
+            if (e.target === e.currentTarget) {
+              handleCloseBookingForm();
+            }
+          }}
+        >
+          <div 
+            ref={modalContentRef}
+            className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            tabIndex={-1}
+            onClick={(e) => e.stopPropagation()} // Prevent backdrop click when clicking modal content
+          >
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-brand-charcoal">Book Your Event</h2>
+                <h2 id="modal-title" className="text-2xl font-bold text-brand-charcoal">Book Your Event</h2>
                 <button
-                  onClick={() => setShowBookingForm(false)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  onClick={handleCloseBookingForm}
+                  className="text-gray-500 hover:text-gray-700 text-2xl hover:bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center"
+                  data-testid="close-modal-button"
+                  aria-label="Close booking form"
                 >
                   ×
                 </button>
               </div>
               <MultiStepBookingForm
                 onComplete={handleBookingComplete}
-                onCancel={() => setShowBookingForm(false)}
+                onCancel={handleCloseBookingForm}
                 initialData={bookingInitialData}
               />
             </div>

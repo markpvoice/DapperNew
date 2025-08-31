@@ -59,6 +59,30 @@ global.Headers = class MockHeaders {
   [Symbol.iterator]() { return this._map[Symbol.iterator](); }
 };
 
+// Mock Next.js server components for API route testing
+jest.mock('next/server', () => ({
+  NextRequest: class MockNextRequest {
+    constructor(url, options = {}) {
+      this.url = url;
+      this.method = options.method || 'GET';
+      this.headers = new Map(Object.entries(options.headers || {}));
+      this.body = options.body;
+    }
+  },
+  NextResponse: {
+    json: (body, init = {}) => {
+      const response = new global.Response(JSON.stringify(body), {
+        ...init,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(init.headers || {}),
+        },
+      });
+      return response;
+    },
+  },
+}));
+
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
   constructor() {}

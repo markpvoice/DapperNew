@@ -21,6 +21,17 @@ jest.mock('@/lib/database', () => ({
   getBookingById: jest.fn(),
 }));
 
+// Mock the email service
+jest.mock('@/lib/email', () => ({
+  sendBookingConfirmation: jest.fn(),
+  sendAdminNotification: jest.fn(),
+}));
+
+// Mock the rate limiter
+jest.mock('@/lib/rate-limiter', () => ({
+  checkRateLimit: jest.fn(),
+}));
+
 // Mock the query helpers
 jest.mock('@/lib/db', () => ({
   queryHelpers: {
@@ -217,6 +228,158 @@ describe('Booking API', () => {
       expect(response.status).toBe(400);
       expect(data.success).toBe(false);
       expect(data.error).toBe('Event date must be in the future');
+    });
+
+    it('should succeed even when email sending fails', async () => {
+      const { createBooking } = await import('@/lib/database');
+      const { sendBookingConfirmation, sendAdminNotification } = await import('@/lib/email');
+
+      (createBooking as jest.Mock).mockResolvedValue({
+        success: true,
+        booking: { ...mockBooking, id: 'new-booking-id' },
+      });
+
+      // Mock email failures
+      (sendBookingConfirmation as jest.Mock).mockRejectedValue(new Error('Email service down'));
+      (sendAdminNotification as jest.Mock).mockRejectedValue(new Error('Email service down'));
+
+      const request = new NextRequest('http://localhost:3000/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(validBookingData),
+      });
+
+      const response = await bookingsPOST(request);
+      const data = await response.json();
+
+      // Booking should still succeed
+      expect(response.status).toBe(201);
+      expect(data.success).toBe(true);
+      expect(data.message).toBe('Booking created successfully');
+    });
+
+    it('should handle timezone edge cases for future date validation', async () => {
+      const { createBooking } = await import('@/lib/database');
+
+      (createBooking as jest.Mock).mockResolvedValue({
+        success: true,
+        booking: { ...mockBooking, id: 'timezone-test' },
+      });
+
+      // Test date that might be considered past in some timezones but future in others
+      const edgeDate = new Date();
+      edgeDate.setDate(edgeDate.getDate() + 1);
+      edgeDate.setHours(2, 0, 0, 0); // 2 AM tomorrow
+
+      const edgeDateData = {
+        ...validBookingData,
+        eventDate: edgeDate.toISOString().split('T')[0],
+      };
+
+      const request = new NextRequest('http://localhost:3000/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(edgeDateData),
+      });
+
+      const response = await bookingsPOST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(data.success).toBe(true);
+    });
+
+    it('should enforce rate limiting when enabled', async () => {
+      const { checkRateLimit } = await import('@/lib/rate-limiter');
+
+      // Mock rate limit exceeded
+      (checkRateLimit as jest.Mock).mockResolvedValue({
+        allowed: false,
+        remaining: 0,
+        retryAfter: 600, // 10 minutes
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-forwarded-for': '192.168.1.1',
+        },
+        body: JSON.stringify(validBookingData),
+      });
+
+      const response = await bookingsPOST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(429);
+      expect(data.success).toBe(false);
+      expect(data.error).toContain('Too many requests');
+      expect(response.headers.get('Retry-After')).toBe('600');
+    });
+
+    it('should allow requests when rate limit is in log mode', async () => {
+      const { checkRateLimit } = await import('@/lib/rate-limiter');
+      const { createBooking } = await import('@/lib/database');
+
+      // Mock rate limit in log-only mode (allows but logs)
+      (checkRateLimit as jest.Mock).mockResolvedValue({
+        allowed: true,
+        remaining: 0, // Shows 0 remaining but still allows
+        retryAfter: 600,
+      });
+
+      (createBooking as jest.Mock).mockResolvedValue({
+        success: true,
+        booking: { ...mockBooking, id: 'rate-limit-log-test' },
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-forwarded-for': '192.168.1.1',
+        },
+        body: JSON.stringify(validBookingData),
+      });
+
+      const response = await bookingsPOST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(data.success).toBe(true);
+    });
+
+    it('should fail open when rate limiter has errors', async () => {
+      const { checkRateLimit } = await import('@/lib/rate-limiter');
+      const { createBooking } = await import('@/lib/database');
+
+      // Mock rate limiter failure
+      (checkRateLimit as jest.Mock).mockRejectedValue(new Error('Rate limiter database error'));
+
+      (createBooking as jest.Mock).mockResolvedValue({
+        success: true,
+        booking: { ...mockBooking, id: 'rate-limit-error-test' },
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-forwarded-for': '192.168.1.1',
+        },
+        body: JSON.stringify(validBookingData),
+      });
+
+      const response = await bookingsPOST(request);
+      const data = await response.json();
+
+      // Should still allow the request (fail-open)
+      expect(response.status).toBe(201);
+      expect(data.success).toBe(true);
     });
   });
 

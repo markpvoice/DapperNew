@@ -22,7 +22,7 @@ interface Service {
 interface BookingFormData {
   services: string[];
   eventDate?: string;
-  eventTime?: string;
+  eventStartTime?: string;
   eventEndTime?: string;
   eventType?: string;
   venue?: string;
@@ -89,6 +89,37 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
     isCompleted: false
   });
   const { toast } = useToast();
+
+  // Helper function to generate calendar event data
+  const generateCalendarEvent = () => {
+    const eventDate = new Date(formData.eventDate || '');
+    const startTime = formData.eventStartTime ? `T${formData.eventStartTime}:00` : 'T18:00:00';
+    const endTime = formData.eventEndTime ? `T${formData.eventEndTime}:00` : 'T22:00:00';
+    
+    const startDateTime = eventDate.toISOString().split('T')[0] + startTime;
+    const endDateTime = eventDate.toISOString().split('T')[0] + endTime;
+    
+    const services = formData.services.map(serviceId => {
+      const service = SERVICES.find(s => s.id === serviceId);
+      return service?.name;
+    }).filter(Boolean).join(', ');
+
+    const description = `Services: ${services}\\nVenue: ${formData.venue || 'TBD'}\\nContact: ${formData.clientPhone || 'N/A'}`;
+    
+    return `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Dapper Squad Entertainment//EN
+BEGIN:VEVENT
+UID:${bookingState.bookingReference}-${Date.now()}@dappersquad.com
+DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+DTSTART:${startDateTime.replace(/[-:]/g, '')}
+DTEND:${endDateTime.replace(/[-:]/g, '')}
+SUMMARY:${formData.eventType || 'Event'} - Dapper Squad Entertainment
+DESCRIPTION:${description}
+LOCATION:${formData.venue || ''}, ${formData.venueAddress || ''}
+END:VEVENT
+END:VCALENDAR`;
+  };
   
   // Auto-save form data to localStorage
   React.useEffect(() => {
@@ -120,7 +151,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
         const cleanFormData = {
           services: formData.services || [],
           eventDate: formData.eventDate,
-          eventTime: formData.eventTime,
+          eventStartTime: formData.eventStartTime,
           eventEndTime: formData.eventEndTime,
           eventType: formData.eventType,
           venue: formData.venue,
@@ -157,8 +188,8 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
         if (!formData.eventDate) {
           newErrors.eventDate = 'Please select an event date';
         }
-        if (!formData.eventTime) {
-          newErrors.eventTime = 'Please select an event time';
+        if (!formData.eventStartTime) {
+          newErrors.eventStartTime = 'Please select an event time';
         }
         break;
       case 2: // Event Details
@@ -245,7 +276,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
         clientEmail: String(formData.clientEmail || '').trim(),
         clientPhone: String(formData.clientPhone || '').trim(),
         eventDate: String(formData.eventDate || ''),
-        eventTime: formData.eventTime ? String(formData.eventTime) : undefined,
+        eventStartTime: formData.eventStartTime ? String(formData.eventStartTime) : undefined,
         eventEndTime: formData.eventEndTime ? String(formData.eventEndTime) : undefined,
         eventType: String(formData.eventType || ''),
         services: Array.isArray(formData.services) ? [...formData.services] : [],
@@ -283,8 +314,8 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
           duration: 5000,
         });
 
-        // Call parent completion handler
-        await onComplete(formData);
+        // Don't immediately call onComplete - let user see success screen first
+        // The success screen will have a "Close" or "Done" button that calls onComplete
       } else {
         throw new Error(result.error || 'Unknown error occurred');
       }
@@ -307,9 +338,113 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
         duration: 5000,
       });
     }
-  }, [currentStep, formData, onComplete, validateStep, toast]);
+  }, [currentStep, formData, validateStep, toast]);
 
   const renderStep = () => {
+    // Show success screen if booking is completed
+    if (bookingState.isCompleted && bookingState.bookingReference) {
+      return (
+        <div className="text-center space-y-6" data-testid="booking-success">
+          <div className="mb-8">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-brand-charcoal mb-2">Booking Request Submitted!</h2>
+            <p className="text-brand-dark-gray">
+              Thank you for choosing Dapper Squad Entertainment. We'll contact you within 24-48 hours to confirm your booking.
+            </p>
+          </div>
+
+          <div className="bg-brand-light-gray p-6 rounded-lg">
+            <h3 className="font-semibold text-brand-charcoal mb-2">Your Booking Reference</h3>
+            <p className="text-2xl font-mono font-bold text-brand-gold" data-testid="booking-reference">
+              {bookingState.bookingReference}
+            </p>
+            <p className="text-sm text-brand-dark-gray mt-2">
+              Please save this reference number for your records
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+            <div data-testid="confirmed-services">
+              <h4 className="font-semibold text-brand-charcoal mb-2">Services</h4>
+              <ul className="text-brand-dark-gray text-sm space-y-1">
+                {formData.services.map((serviceId) => {
+                  const service = SERVICES.find(s => s.id === serviceId);
+                  return service && (
+                    <li key={serviceId}>• {service.name}</li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-brand-charcoal mb-2">Event Details</h4>
+              <div className="text-brand-dark-gray text-sm space-y-1">
+                <p data-testid="confirmed-name">Client: {formData.clientName}</p>
+                <p data-testid="confirmed-date">Date: {formData.eventDate}</p>
+                <p>Type: {formData.eventType}</p>
+                <p>Venue: {formData.venue}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4" data-testid="next-steps">
+            <h4 className="font-semibold text-brand-charcoal">Next Steps</h4>
+            <div className="bg-blue-50 p-4 rounded-lg text-left">
+              <ul className="text-sm text-brand-dark-gray space-y-2">
+                <li className="flex items-start">
+                  <span className="font-semibold text-blue-600 mr-2">1.</span>
+                  <span>We'll review your booking request and contact you within 24-48 hours</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="font-semibold text-blue-600 mr-2">2.</span>
+                  <span>A $200 deposit will be required to secure your date</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="font-semibold text-blue-600 mr-2">3.</span>
+                  <span>Final details and payment arrangements will be confirmed</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="space-y-3" data-testid="payment-info">
+            <h4 className="font-semibold text-brand-charcoal">Payment Information</h4>
+            <div className="bg-yellow-50 p-4 rounded-lg text-left">
+              <p className="text-sm text-brand-dark-gray">
+                <strong>Deposit:</strong> $200 required to secure your booking<br />
+                <strong>Payment Methods:</strong> Cash, Check, Venmo, Zelle<br />
+                <strong>Final Payment:</strong> Due on the day of your event
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-4">
+            <button
+              onClick={() => window.open(`data:text/calendar;charset=utf8,${encodeURIComponent(generateCalendarEvent())}`)}
+              className="inline-flex items-center px-4 py-2 bg-brand-gold hover:bg-brand-dark-gold text-white rounded-lg text-sm font-medium transition-colors"
+              data-testid="add-to-calendar"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              Add to Calendar
+            </button>
+            
+            <button
+              onClick={() => onComplete(formData)}
+              className="ml-4 inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-brand-charcoal rounded-lg text-sm font-medium transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     switch (currentStep) {
       case 0:
         return (
@@ -367,28 +502,34 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 <input
                   type="date"
                   id="eventDate"
+                  data-testid="event-date"
                   value={formData.eventDate || ''}
                   onChange={(e) => updateFormData({ eventDate: e.target.value })}
+                  min={new Date().toISOString().split('T')[0]}
+                  aria-describedby={errors.eventDate ? 'eventDate-error' : undefined}
+                  aria-invalid={errors.eventDate ? 'true' : 'false'}
                   className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold text-base sm:text-sm"
                 />
                 {errors.eventDate && (
-                  <p className="text-red-600 text-sm mt-1">{errors.eventDate}</p>
+                  <p id="eventDate-error" className="text-red-600 text-sm mt-1" role="alert" aria-live="polite">{errors.eventDate}</p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="eventTime" className="block text-sm font-medium text-brand-charcoal mb-2">
+                <label htmlFor="eventStartTime" className="block text-sm font-medium text-brand-charcoal mb-2">
                   Start Time *
                 </label>
                 <input
                   type="time"
-                  id="eventTime"
-                  value={formData.eventTime || ''}
-                  onChange={(e) => updateFormData({ eventTime: e.target.value })}
+                  id="eventStartTime"
+                  value={formData.eventStartTime || ''}
+                  onChange={(e) => updateFormData({ eventStartTime: e.target.value })}
+                  aria-describedby={errors.eventStartTime ? 'eventStartTime-error' : undefined}
+                  aria-invalid={errors.eventStartTime ? 'true' : 'false'}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
                 />
-                {errors.eventTime && (
-                  <p className="text-red-600 text-sm mt-1">{errors.eventTime}</p>
+                {errors.eventStartTime && (
+                  <p id="eventStartTime-error" className="text-red-600 text-sm mt-1" role="alert" aria-live="polite">{errors.eventStartTime}</p>
                 )}
               </div>
             </div>
@@ -420,8 +561,11 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
               </label>
               <select
                 id="eventType"
+                data-testid="event-type"
                 value={formData.eventType || ''}
                 onChange={(e) => updateFormData({ eventType: e.target.value })}
+                aria-describedby={errors.eventType ? 'eventType-error' : undefined}
+                aria-invalid={errors.eventType ? 'true' : 'false'}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
               >
                 <option value="">Select event type</option>
@@ -433,7 +577,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 <option value="other">Other</option>
               </select>
               {errors.eventType && (
-                <p className="text-red-600 text-sm mt-1">{errors.eventType}</p>
+                <p id="eventType-error" className="text-red-600 text-sm mt-1" role="alert" aria-live="polite">{errors.eventType}</p>
               )}
             </div>
 
@@ -447,10 +591,13 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 value={formData.venue || ''}
                 onChange={(e) => updateFormData({ venue: e.target.value })}
                 placeholder="e.g., The Grand Ballroom"
+                autoComplete="organization"
+                aria-describedby={errors.venue ? 'venue-error' : undefined}
+                aria-invalid={errors.venue ? 'true' : 'false'}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
               />
               {errors.venue && (
-                <p className="text-red-600 text-sm mt-1">{errors.venue}</p>
+                <p id="venue-error" className="text-red-600 text-sm mt-1" role="alert" aria-live="polite">{errors.venue}</p>
               )}
             </div>
 
@@ -463,6 +610,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 value={formData.venueAddress || ''}
                 onChange={(e) => updateFormData({ venueAddress: e.target.value })}
                 placeholder="Full venue address"
+                autoComplete="street-address"
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
               />
@@ -478,6 +626,9 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
                 value={formData.guestCount || ''}
                 onChange={(e) => updateFormData({ guestCount: parseInt(e.target.value) || undefined })}
                 placeholder="e.g., 50"
+                inputMode="numeric"
+                min="1"
+                max="10000"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold max-w-xs"
               />
             </div>
@@ -511,13 +662,17 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
               <input
                 type="text"
                 id="clientName"
+                data-testid="client-name"
                 value={formData.clientName || ''}
                 onChange={(e) => updateFormData({ clientName: e.target.value })}
                 placeholder="Your full name"
+                autoComplete="name"
+                aria-describedby={errors.clientName ? 'clientName-error' : undefined}
+                aria-invalid={errors.clientName ? 'true' : 'false'}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
               />
               {errors.clientName && (
-                <p className="text-red-600 text-sm mt-1">{errors.clientName}</p>
+                <p id="clientName-error" className="text-red-600 text-sm mt-1" role="alert" aria-live="polite">{errors.clientName}</p>
               )}
             </div>
 
@@ -528,13 +683,18 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
               <input
                 type="email"
                 id="clientEmail"
+                data-testid="client-email"
                 value={formData.clientEmail || ''}
                 onChange={(e) => updateFormData({ clientEmail: e.target.value })}
                 placeholder="your.email@example.com"
+                autoComplete="email"
+                inputMode="email"
+                aria-describedby={errors.clientEmail ? 'clientEmail-error' : undefined}
+                aria-invalid={errors.clientEmail ? 'true' : 'false'}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
               />
               {errors.clientEmail && (
-                <p className="text-red-600 text-sm mt-1">{errors.clientEmail}</p>
+                <p id="clientEmail-error" className="text-red-600 text-sm mt-1" role="alert" aria-live="polite">{errors.clientEmail}</p>
               )}
             </div>
 
@@ -545,13 +705,18 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
               <input
                 type="tel"
                 id="clientPhone"
+                data-testid="client-phone"
                 value={formData.clientPhone || ''}
                 onChange={(e) => updateFormData({ clientPhone: e.target.value })}
                 placeholder="(555) 123-4567"
+                autoComplete="tel"
+                inputMode="tel"
+                aria-describedby={errors.clientPhone ? 'clientPhone-error' : undefined}
+                aria-invalid={errors.clientPhone ? 'true' : 'false'}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
               />
               {errors.clientPhone && (
-                <p className="text-red-600 text-sm mt-1">{errors.clientPhone}</p>
+                <p id="clientPhone-error" className="text-red-600 text-sm mt-1" role="alert" aria-live="polite">{errors.clientPhone}</p>
               )}
             </div>
           </div>
@@ -584,7 +749,7 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
               <div>
                 <h3 className="font-semibold text-brand-charcoal mb-2">Event Details</h3>
                 <p className="text-brand-dark-gray">Date: {formData.eventDate}</p>
-                <p className="text-brand-dark-gray">Time: {formData.eventTime} {formData.eventEndTime && `- ${formData.eventEndTime}`}</p>
+                <p className="text-brand-dark-gray">Time: {formData.eventStartTime} {formData.eventEndTime && `- ${formData.eventEndTime}`}</p>
                 <p className="text-brand-dark-gray">Event Type: {formData.eventType}</p>
                 <p className="text-brand-dark-gray">Venue: {formData.venue}</p>
                 {formData.guestCount && (
@@ -613,65 +778,70 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
 
   return (
     <div className="max-w-2xl mx-auto p-4 sm:p-6">
-      {/* Enhanced Progress Indicator */}
-      <div className="mb-6 sm:mb-8">
-        <AnimatedProgressBar
-          steps={STEPS}
-          currentStep={currentStep}
-          completedSteps={completedSteps}
-          className=""
-        />
-      </div>
+      {/* Enhanced Progress Indicator - Hidden when booking is completed */}
+      {!bookingState.isCompleted && (
+        <div className="mb-6 sm:mb-8">
+          <AnimatedProgressBar
+            steps={STEPS}
+            currentStep={currentStep}
+            completedSteps={completedSteps}
+            className=""
+          />
+        </div>
+      )}
 
       {/* Step Content */}
       <div className="mb-8">
         {renderStep()}
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex flex-col sm:flex-row justify-between space-y-3 sm:space-y-0">
-        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-          {currentStep > 0 && (
+      {/* Navigation Buttons - Hidden when booking is completed */}
+      {!bookingState.isCompleted && (
+        <div className="flex flex-col sm:flex-row justify-between space-y-3 sm:space-y-0">
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+            {currentStep > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleBack}
+                className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+              >
+                Back
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"
-              onClick={handleBack}
+              onClick={onCancel}
               className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
             >
-              Back
+              Cancel
             </Button>
-          )}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
-          >
-            Cancel
-          </Button>
-        </div>
+          </div>
 
-        <div className="w-full sm:w-auto">
-          {currentStep < STEPS.length - 1 ? (
-            <Button
-              type="button"
-              onClick={handleNext}
-              className="bg-brand-gold hover:bg-brand-dark-gold text-white w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
-            >
-              Next
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              className="bg-brand-gold hover:bg-brand-dark-gold text-white w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
-              disabled={bookingState.isSubmitting}
-            >
-              {bookingState.isSubmitting ? 'Submitting...' : 'Submit Booking'}
-            </Button>
-          )}
+          <div className="w-full sm:w-auto">
+            {currentStep < STEPS.length - 1 ? (
+              <Button
+                type="button"
+                onClick={handleNext}
+                className="bg-brand-gold hover:bg-brand-dark-gold text-white w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+              >
+                Next
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                className="bg-brand-gold hover:bg-brand-dark-gold text-white w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                disabled={bookingState.isSubmitting}
+                data-testid="submit-booking"
+              >
+                {bookingState.isSubmitting ? 'Submitting...' : 'Submit Booking'}
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Celebration Service for animations */}
       <CelebrationService />
