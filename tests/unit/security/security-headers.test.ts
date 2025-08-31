@@ -11,7 +11,10 @@
 
 import { NextRequest } from 'next/server';
 
-// Mock Next.js config for testing
+// Import actual Next.js config for testing
+const nextConfig = require('../../../next.config.js');
+
+// Mock Next.js config for testing (legacy - keeping for reference)
 const mockNextConfig = {
   async headers() {
     return [
@@ -263,12 +266,20 @@ describe('Security Headers Configuration', () => {
 describe('Real Next.js Configuration Validation', () => {
   // Test the actual Next.js config by importing it
   let realNextConfig: any;
+  const originalNodeEnv = process.env.NODE_ENV;
   
   beforeAll(() => {
+    // Set production environment for testing
+    process.env.NODE_ENV = 'production';
     // Clear module cache to get fresh config
     const configPath = require.resolve('../../../next.config.js');
     delete require.cache[configPath];
     realNextConfig = require('../../../next.config.js');
+  });
+
+  afterAll(() => {
+    // Restore original NODE_ENV
+    process.env.NODE_ENV = originalNodeEnv;
   });
 
   describe('Production CSP Validation', () => {

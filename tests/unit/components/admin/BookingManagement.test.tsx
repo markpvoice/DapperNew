@@ -71,7 +71,7 @@ jest.mock('@/hooks/useBookings', () => ({
 // Type the mock properly
 const mockUseBookingsHook = jest.mocked(require('@/hooks/useBookings').useBookings);
 
-describe.skip('BookingManagement Component', () => {
+describe('BookingManagement Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseBookingsHook.mockReturnValue(mockUseBookings);

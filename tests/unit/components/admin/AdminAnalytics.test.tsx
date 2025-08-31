@@ -12,6 +12,40 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { AdminAnalytics } from '@/components/admin/AdminAnalytics';
 
+// Mock chart components for JSDOM compatibility
+jest.mock('@/components/admin/charts/ServicePopularityChart', () => ({
+  ServicePopularityChart: ({ data }: any) => {
+    // Debug logging
+    console.log('ServicePopularityChart received data:', data);
+    
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      return <div data-testid="service-chart">No data available</div>;
+    }
+    
+    return (
+      <div data-testid="service-chart">
+        {data.map((item: any, index: number) => (
+          <div key={index} data-testid={`service-${item.service.toLowerCase()}`}>
+            {item.service} ({item.count} bookings)
+          </div>
+        ))}
+      </div>
+    );
+  }
+}));
+
+jest.mock('@/components/admin/charts/RevenueChart', () => ({
+  RevenueChart: ({ data }: any) => (
+    <div data-testid="revenue-chart">Revenue Chart Mock</div>
+  )
+}));
+
+jest.mock('@/components/admin/charts/BookingTrendsChart', () => ({
+  BookingTrendsChart: ({ data }: any) => (
+    <div data-testid="trends-chart">Booking Trends Chart Mock</div>
+  )
+}));
+
 const mockAnalyticsData = {
   success: true,
   period: '30d',
@@ -72,7 +106,7 @@ const mockAnalyticsData = {
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
-describe.skip('AdminAnalytics Component', () => {
+describe('AdminAnalytics Component', () => {
   beforeEach(() => {
     mockFetch.mockClear();
     mockFetch.mockResolvedValue({
@@ -325,47 +359,149 @@ describe.skip('AdminAnalytics Component', () => {
   });
 
   describe('Export Functionality', () => {
-    test.skip('exports analytics data when export button is clicked (JSDOM limitation)', async () => {
-      // Skip this test due to JSDOM appendChild issues
-      // Functionality is verified in browser testing
+    test('exports analytics data when export button is clicked', async () => {
+      // Mock URL.createObjectURL and document.createElement
+      const mockCreateObjectURL = jest.fn(() => 'mock-url');
+      const mockRevokeObjectURL = jest.fn();
+      global.URL.createObjectURL = mockCreateObjectURL;
+      global.URL.revokeObjectURL = mockRevokeObjectURL;
+      
+      const mockLink = {
+        href: '',
+        download: '',
+        click: jest.fn()
+      };
+      const mockAppendChild = jest.fn();
+      const mockRemoveChild = jest.fn();
+      
+      jest.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
+      jest.spyOn(document.body, 'appendChild').mockImplementation(mockAppendChild);
+      jest.spyOn(document.body, 'removeChild').mockImplementation(mockRemoveChild);
+      
+      render(<AdminAnalytics />);
+      
+      await waitFor(() => {
+        expect(screen.getByText('Export Report')).toBeInTheDocument();
+      });
+      
+      const exportButton = screen.getByText('Export Report');
+      fireEvent.click(exportButton);
+      
+      // Verify export process
+      expect(document.createElement).toHaveBeenCalledWith('a');
+      expect(mockLink.click).toHaveBeenCalled();
+      expect(mockCreateObjectURL).toHaveBeenCalled();
+      expect(mockRevokeObjectURL).toHaveBeenCalled();
     });
   });
 
   describe('Accessibility', () => {
-    test.skip('provides accessible labels for all form elements (JSDOM limitation)', async () => {
-      // Skip due to JSDOM appendChild issues
+    test('provides accessible labels for all form elements', async () => {
+      render(<AdminAnalytics />);
+      
+      await waitFor(() => {
+        // Check for accessible labels
+        expect(screen.getByLabelText('Time Period')).toBeInTheDocument();
+      });
     });
 
-    test.skip('provides proper heading hierarchy (JSDOM limitation)', async () => {
-      // Skip due to JSDOM appendChild issues
+    test('provides proper heading hierarchy', async () => {
+      render(<AdminAnalytics />);
+      
+      await waitFor(() => {
+        // Check for proper heading structure
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Analytics Dashboard');
+        expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(6); // Revenue, Booking Status, Service Popularity, Event Types, Booking Trends, Conversion Funnel, Contact Sources
+      });
     });
 
-    test.skip('provides meaningful text alternatives for data (JSDOM limitation)', async () => {
-      // Skip due to JSDOM appendChild issues
+    test('provides meaningful text alternatives for data', async () => {
+      render(<AdminAnalytics />);
+      
+      await waitFor(() => {
+        // Check that data is presented in accessible text format
+        expect(screen.getByText('Total Revenue')).toBeInTheDocument();
+        expect(screen.getByText('$40,900')).toBeInTheDocument();
+        expect(screen.getByText('Business Performance Overview')).toBeInTheDocument();
+      });
     });
   });
 
   describe('Responsive Design', () => {
-    test.skip('renders grid layout correctly (JSDOM limitation)', async () => {
-      // Skip due to JSDOM appendChild issues
+    test('renders grid layout correctly', async () => {
+      render(<AdminAnalytics />);
+      
+      await waitFor(() => {
+        // Check for grid layout elements
+        const statsGrid = screen.getByTestId('stats-grid');
+        expect(statsGrid).toBeInTheDocument();
+        expect(statsGrid).toHaveClass('grid');
+      });
     });
 
-    test.skip('applies responsive classes for mobile optimization (JSDOM limitation)', async () => {
-      // Skip due to JSDOM appendChild issues
+    test('applies responsive classes for mobile optimization', async () => {
+      render(<AdminAnalytics />);
+      
+      await waitFor(() => {
+        // Check for responsive classes on key elements
+        const analyticsContainer = screen.getByTestId('analytics-dashboard');
+        expect(analyticsContainer).toBeInTheDocument();
+        
+        const statsGrid = screen.getByTestId('stats-grid');
+        expect(statsGrid).toHaveClass('grid', 'grid-cols-1', 'md:grid-cols-3');
+      });
     });
   });
 
   describe('Error Handling', () => {
-    test.skip('displays error message when API request fails (JSDOM limitation)', async () => {
-      // Skip due to JSDOM appendChild issues
+    test('displays error message when API request fails', async () => {
+      mockFetch.mockRejectedValue(new Error('API Error'));
+      
+      render(<AdminAnalytics />);
+      
+      await waitFor(() => {
+        expect(screen.getByText('Error Loading Analytics')).toBeInTheDocument();
+        expect(screen.getByText('Failed to load analytics data')).toBeInTheDocument();
+      });
     });
 
-    test.skip('displays retry button on error (JSDOM limitation)', async () => {
-      // Skip due to JSDOM appendChild issues
+    test('displays retry button on error', async () => {
+      mockFetch.mockRejectedValue(new Error('API Error'));
+      
+      render(<AdminAnalytics />);
+      
+      await waitFor(() => {
+        expect(screen.getByText('Retry')).toBeInTheDocument();
+      });
     });
 
-    test.skip('retries data fetch when retry button is clicked (JSDOM limitation)', async () => {
-      // Skip due to JSDOM appendChild issues
+    test('retries data fetch when retry button is clicked', async () => {
+      // First call fails, second call succeeds
+      mockFetch
+        .mockRejectedValueOnce(new Error('API Error'))
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockAnalyticsData)
+        });
+      
+      render(<AdminAnalytics />);
+      
+      // Wait for error to appear
+      await waitFor(() => {
+        expect(screen.getByText('Retry')).toBeInTheDocument();
+      });
+      
+      // Click retry button
+      const retryButton = screen.getByText('Retry');
+      fireEvent.click(retryButton);
+      
+      // Wait for successful data load
+      await waitFor(() => {
+        expect(screen.getByText('Analytics Dashboard')).toBeInTheDocument();
+        expect(screen.getByText('$40,900')).toBeInTheDocument();
+      });
+      
+      expect(mockFetch).toHaveBeenCalledTimes(2);
     });
   });
 });

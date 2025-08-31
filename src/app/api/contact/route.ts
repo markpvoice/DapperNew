@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { verifyAuth } from '@/lib/auth';
 import { createContactSubmission } from '@/lib/database';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 // Validation schema for contact form submissions
 const contactSchema = z.object({
@@ -30,6 +31,34 @@ const listContactsSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
+    // Optional: rate limiting (feature-flagged in the limiter)
+    const clientIp = request.headers.get('x-forwarded-for') ||
+                     request.headers.get('x-real-ip') ||
+                     '127.0.0.1';
+    const rl = await checkRateLimit({
+      maxAttempts: 10,
+      windowMs: 10 * 60 * 1000, // 10 minutes
+      identifier: clientIp,
+      action: 'contact',
+    });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Too many requests. Please try again later.',
+          retryAfter: rl.retryAfter,
+          remaining: rl.remaining,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rl.retryAfter || 600),
+            'X-RateLimit-Remaining': String(rl.remaining),
+            'X-RateLimit-Reset': String(Math.floor(rl.resetTime / 1000)),
+          },
+        }
+      );
+    }
     // Parse and validate request body
     const body = await request.json();
     const validation = contactSchema.safeParse(body);

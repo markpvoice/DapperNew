@@ -38,7 +38,7 @@ jest.mock('recharts', () => ({
   Legend: () => <div data-testid="legend" />,
 }));
 
-describe.skip('ServicePopularityChart Component', () => {
+describe('ServicePopularityChart Component', () => {
   describe('Rendering and Layout', () => {
     test('renders pie chart container with proper structure', () => {
       render(<ServicePopularityChart data={mockServiceData} />);

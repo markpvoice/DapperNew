@@ -6,7 +6,7 @@
  * server instances or container restarts.
  */
 
-// import { db } from './db'; // Disabled until rate limiting table is created
+import { db } from './db';
 
 interface RateLimitResult {
   allowed: boolean;
@@ -28,68 +28,87 @@ interface RateLimitOptions {
 export async function checkRateLimit({
   maxAttempts,
   windowMs,
-  identifier: _identifier,
-  action: _action,
+  identifier,
+  action,
 }: RateLimitOptions): Promise<RateLimitResult> {
+  // Feature flag controls
+  // ENABLE_RATE_LIMIT:
+  //  - 'true'  => enforce
+  //  - 'log'   => evaluate but do not block (log-only)
+  //  - other   => disabled
+  const mode = (process.env.ENABLE_RATE_LIMIT || 'false').toLowerCase();
   const now = new Date();
-  const _windowStart = new Date(now.getTime() - windowMs);
+  const windowStart = new Date(now.getTime() - windowMs);
+
+  // Disabled: allow without DB calls
+  if (mode !== 'true' && mode !== 'log') {
+    return {
+      allowed: true,
+      remaining: Math.max(0, maxAttempts - 1),
+      resetTime: now.getTime() + windowMs,
+    };
+  }
 
   try {
-    // TODO: Enable when rateLimitAttempt table is created via migration
-    // For now, fail open (allow requests) to prevent build errors
-    const attempts: any[] = [];
-    
-    // Clean up old entries first (disabled until table exists)
-    // await db.rateLimitAttempt.deleteMany({
-    //   where: {
-    //     createdAt: {
-    //       lt: windowStart,
-    //     },
-    //   },
-    // });
+    // Count attempts in the window
+    const [currentAttempts, oldestInWindow] = await Promise.all([
+      db.rateLimitAttempt.count({
+        where: {
+          identifier,
+          action,
+          createdAt: { gte: windowStart },
+        },
+      }),
+      db.rateLimitAttempt.findFirst({
+        where: {
+          identifier,
+          action,
+          createdAt: { gte: windowStart },
+        },
+        orderBy: { createdAt: 'asc' },
+        select: { createdAt: true },
+      }),
+    ]);
 
-    // Get current attempts within the window (disabled until table exists)
-    // const attempts = await db.rateLimitAttempt.findMany({
-    //   where: {
-    //     identifier,
-    //     action,
-    //     createdAt: {
-    //       gte: windowStart,
-    //     },
-    //   },
-    //   orderBy: {
-    //     createdAt: 'desc',
-    //   },
-    // });
-
-    const currentAttempts = attempts.length;
-    const remaining = Math.max(0, maxAttempts - currentAttempts);
+    const remainingBefore = Math.max(0, maxAttempts - currentAttempts);
     const resetTime = now.getTime() + windowMs;
 
-    // If under the limit, record this attempt and allow
+    // Under the limit: record this attempt and allow
     if (currentAttempts < maxAttempts) {
-      // TODO: Enable when rateLimitAttempt table is created
-      // await db.rateLimitAttempt.create({
-      //   data: {
-      //     identifier,
-      //     action,
-      //     createdAt: now,
-      //   },
-      // });
+      // Record the attempt (best-effort)
+      await db.rateLimitAttempt.create({
+        data: {
+          identifier,
+          action,
+          // createdAt defaults to now()
+        },
+      });
 
       return {
         allowed: true,
-        remaining: remaining - 1, // Subtract 1 for the current attempt
+        remaining: Math.max(0, remainingBefore - 1), // subtract current attempt
         resetTime,
       };
     }
 
-    // Over the limit - calculate retry after
-    const oldestAttempt = attempts[attempts.length - 1];
-    const retryAfter = oldestAttempt 
-      ? Math.ceil((oldestAttempt.createdAt.getTime() + windowMs - now.getTime()) / 1000)
+    // Over the limit – compute retryAfter
+    const retryAfter = oldestInWindow
+      ? Math.max(1, Math.ceil((oldestInWindow.createdAt.getTime() + windowMs - now.getTime()) / 1000))
       : Math.ceil(windowMs / 1000);
 
+    // Log-only mode: don't block, just report remaining as 0
+    if (mode === 'log') {
+      // eslint-disable-next-line no-console
+      console.warn('[rate-limit] exceeded (log-only)', { identifier, action, retryAfter });
+      return {
+        allowed: true,
+        remaining: 0,
+        resetTime,
+        retryAfter,
+      };
+    }
+
+    // Enforced mode: block
     return {
       allowed: false,
       remaining: 0,
@@ -104,7 +123,7 @@ export async function checkRateLimit({
     // This prevents legitimate users from being blocked due to DB issues
     return {
       allowed: true,
-      remaining: maxAttempts - 1,
+      remaining: Math.max(0, maxAttempts - 1),
       resetTime: now.getTime() + windowMs,
     };
   }
@@ -116,13 +135,16 @@ export async function checkRateLimit({
  */
 export async function clearRateLimit(_identifier: string, _action: string): Promise<void> {
   try {
-    // TODO: Enable when rateLimitAttempt table is created
-    // await db.rateLimitAttempt.deleteMany({
-    //   where: {
-    //     identifier,
-    //     action,
-    //   },
-    // });
+    const mode = (process.env.ENABLE_RATE_LIMIT || 'false').toLowerCase();
+    if (mode !== 'true' && mode !== 'log') {
+      return; // disabled
+    }
+    await db.rateLimitAttempt.deleteMany({
+      where: {
+        identifier: _identifier,
+        action: _action,
+      },
+    });
   } catch (error) {
     console.error('Failed to clear rate limit:', error);
     // Don't throw - this is not critical for functionality

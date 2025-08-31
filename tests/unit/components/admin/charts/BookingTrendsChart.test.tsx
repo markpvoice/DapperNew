@@ -55,7 +55,7 @@ jest.mock('recharts', () => ({
   Legend: () => <div data-testid="legend" />,
 }));
 
-describe.skip('BookingTrendsChart Component', () => {
+describe('BookingTrendsChart Component', () => {
   describe('Rendering and Layout', () => {
     test('renders chart container with proper structure', () => {
       render(<BookingTrendsChart data={mockBookingTrendsData} />);

@@ -59,7 +59,7 @@ jest.mock('@/hooks/useCalendarManagement', () => ({
 
 const mockUseCalendarManagementHook = jest.mocked(require('@/hooks/useCalendarManagement').useCalendarManagement);
 
-describe.skip('CalendarManagement Component', () => {
+describe('CalendarManagement Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseCalendarManagementHook.mockReturnValue(mockUseCalendarManagement);
@@ -72,7 +72,7 @@ describe.skip('CalendarManagement Component', () => {
       expect(screen.getByTestId('calendar-management')).toBeInTheDocument();
       expect(screen.getByText('Calendar Management')).toBeInTheDocument();
       expect(screen.getByTestId('calendar-grid')).toBeInTheDocument();
-      expect(screen.getByTestId('calendar-controls')).toBeInTheDocument();
+      expect(screen.getByTestId('month-navigation')).toBeInTheDocument();
     });
 
     test('displays current month and year', () => {

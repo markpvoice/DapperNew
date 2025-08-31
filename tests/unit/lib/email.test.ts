@@ -46,8 +46,10 @@ describe('Email Service Functions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSend.mockClear();
-    // Set up environment variable
+    // Set up environment variables
     process.env.RESEND_API_KEY = 'test-api-key';
+    process.env.VERIFIED_EMAIL = 'markphillips.voice@gmail.com';
+    process.env.NODE_ENV = 'development'; // Ensure development mode
     
     // Mock the Resend instance to use our mockSend function
     const { Resend } = require('resend');
@@ -56,12 +58,11 @@ describe('Email Service Functions', () => {
     }));
   });
 
-  describe.skip('sendBookingConfirmation', () => {
+  describe('sendBookingConfirmation', () => {
     it('should send booking confirmation email successfully', async () => {
       // Arrange
       const mockEmailResponse = {
-        data: { id: 'email-123' },
-        error: null,
+        id: 'email-123'
       };
 
       mockSend.mockResolvedValue(mockEmailResponse);
@@ -87,13 +88,9 @@ describe('Email Service Functions', () => {
     });
 
     it('should handle Resend API errors gracefully', async () => {
-      // Arrange
-      const mockErrorResponse = {
-        data: null,
-        error: { message: 'API rate limit exceeded' },
-      };
-
-      mockSend.mockResolvedValue(mockErrorResponse);
+      // Arrange - Mock direct error object
+      const mockError = { message: 'API rate limit exceeded' };
+      mockSend.mockResolvedValue(mockError);
 
       // Act
       const result = await sendBookingConfirmation(mockBookingData);
@@ -118,8 +115,7 @@ describe('Email Service Functions', () => {
     it('should generate calendar link correctly', async () => {
       // Arrange
       const mockEmailResponse = {
-        data: { id: 'email-123' },
-        error: null,
+        id: 'email-123'
       };
 
       mockSend.mockResolvedValue(mockEmailResponse);
@@ -146,8 +142,7 @@ describe('Email Service Functions', () => {
       };
 
       const mockEmailResponse = {
-        data: { id: 'email-456' },
-        error: null,
+        id: 'email-456'
       };
 
       mockSend.mockResolvedValue(mockEmailResponse);
@@ -159,14 +154,36 @@ describe('Email Service Functions', () => {
       expect(result.success).toBe(true);
       expect(mockSend).toHaveBeenCalled();
     });
+
+    it('should redirect to verified email in development mode', async () => {
+      // Arrange
+      const mockEmailResponse = {
+        id: 'email-dev-test'
+      };
+
+      mockSend.mockResolvedValue(mockEmailResponse);
+
+      // Act
+      const result = await sendBookingConfirmation({
+        ...mockBookingData,
+        clientEmail: 'customer@example.com', // Original email
+      });
+
+      // Assert - should redirect to verified email in development
+      expect(result.success).toBe(true);
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: ['markphillips.voice@gmail.com'], // Redirected to verified email
+        })
+      );
+    });
   });
 
-  describe.skip('sendAdminNotification', () => {
+  describe('sendAdminNotification', () => {
     it('should send admin notification email successfully', async () => {
       // Arrange
       const mockEmailResponse = {
-        data: { id: 'admin-email-123' },
-        error: null,
+        id: 'admin-email-123'
       };
 
       mockSend.mockResolvedValue(mockEmailResponse);
@@ -193,8 +210,7 @@ describe('Email Service Functions', () => {
     it('should include all booking details in admin notification', async () => {
       // Arrange
       const mockEmailResponse = {
-        data: { id: 'admin-email-123' },
-        error: null,
+        id: 'admin-email-123'
       };
 
       mockSend.mockResolvedValue(mockEmailResponse);
@@ -223,8 +239,7 @@ describe('Email Service Functions', () => {
       process.env.NEXT_PUBLIC_BASE_URL = 'https://dappersquad.com';
       
       const mockEmailResponse = {
-        data: { id: 'admin-email-123' },
-        error: null,
+        id: 'admin-email-123'
       };
 
       mockSend.mockResolvedValue(mockEmailResponse);
@@ -257,12 +272,11 @@ describe('Email Service Functions', () => {
     });
   });
 
-  describe.skip('sendContactFormResponse', () => {
+  describe('sendContactFormResponse', () => {
     it('should send contact form auto-response successfully', async () => {
       // Arrange
       const mockEmailResponse = {
-        data: { id: 'contact-email-123' },
-        error: null,
+        id: 'contact-email-123'
       };
 
       mockSend.mockResolvedValue(mockEmailResponse);
@@ -292,8 +306,7 @@ describe('Email Service Functions', () => {
     it('should include personalized content in contact response', async () => {
       // Arrange
       const mockEmailResponse = {
-        data: { id: 'contact-email-123' },
-        error: null,
+        id: 'contact-email-123'
       };
 
       mockSend.mockResolvedValue(mockEmailResponse);
@@ -334,12 +347,11 @@ describe('Email Service Functions', () => {
     });
   });
 
-  describe.skip('Calendar Link Generation', () => {
+  describe('Calendar Link Generation', () => {
     it('should generate valid Google Calendar link', async () => {
       // Arrange
       const mockEmailResponse = {
-        data: { id: 'email-123' },
-        error: null,
+        id: 'email-123'
       };
 
       mockSend.mockResolvedValue(mockEmailResponse);
@@ -366,8 +378,7 @@ describe('Email Service Functions', () => {
       };
 
       const mockEmailResponse = {
-        data: { id: 'email-123' },
-        error: null,
+        id: 'email-123'
       };
 
       mockSend.mockResolvedValue(mockEmailResponse);
@@ -394,8 +405,7 @@ describe('Email Service Functions', () => {
       };
 
       const mockEmailResponse = {
-        data: { id: 'email-123' },
-        error: null,
+        id: 'email-123'
       };
 
       mockSend.mockResolvedValue(mockEmailResponse);
@@ -457,7 +467,7 @@ describe('Email Service Functions', () => {
     });
   });
 
-  describe.skip('Email Content Validation', () => {
+  describe('Email Content Validation', () => {
     it('should sanitize HTML content in email templates', async () => {
       // Arrange
       const bookingWithHTML = {
@@ -467,8 +477,7 @@ describe('Email Service Functions', () => {
       };
 
       const mockEmailResponse = {
-        data: { id: 'email-123' },
-        error: null,
+        id: 'email-123'
       };
 
       mockSend.mockResolvedValue(mockEmailResponse);
@@ -492,8 +501,7 @@ describe('Email Service Functions', () => {
       };
 
       const mockEmailResponse = {
-        data: { id: 'email-123' },
-        error: null,
+        id: 'email-123'
       };
 
       mockSend.mockResolvedValue(mockEmailResponse);
@@ -507,12 +515,11 @@ describe('Email Service Functions', () => {
     });
   });
 
-  describe.skip('Performance and Rate Limiting', () => {
+  describe('Performance and Rate Limiting', () => {
     it('should handle multiple concurrent email sends', async () => {
       // Arrange
       const mockEmailResponse = {
-        data: { id: 'email-123' },
-        error: null,
+        id: 'email-123'
       };
 
       mockSend.mockResolvedValue(mockEmailResponse);
