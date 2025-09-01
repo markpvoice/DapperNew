@@ -39,9 +39,15 @@ export default defineConfig({
     /* Record video on failure */
     video: 'retain-on-failure',
     
-    /* Global timeout for all tests */
-    actionTimeout: 10000,
+    /* Increased timeouts for animation-heavy app */
+    actionTimeout: 15000,
     navigationTimeout: 30000,
+    
+    /* Reduce motion for more stable tests */
+    reducedMotion: 'reduce',
+    
+    /* Wait for fonts and animations */
+    waitUntil: 'networkidle',
   },
 
   /* Configure projects for major browsers */

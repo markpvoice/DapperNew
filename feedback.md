@@ -5,8 +5,8 @@ This document summarizes strengths and concrete recommendations across code qual
 ## Executive Summary
 - Strong foundation: modern Next.js 14 + TypeScript, zod validation, Prisma data layer, Jest + Playwright, Tailwind, and security-forward Next headers/CSP.
 - Tests: good breadth on security headers, DB layer, UI components; global Jest setup is robust.
-- Recently addressed: availability API alignment (client now uses `month/year`), booking time field alignment (`eventStartTime`), added `data-testid="book-now-button"`, and significantly improved booking modal a11y (focus trap, aria attributes, focus restore, aria-hidden background).
-- Remaining gaps: some E2E selector drift for post-submit success elements and mobile-flow assumptions, and missing tests for API route handlers and client API utilities.
+- Recently addressed: availability API alignment (client now uses `month/year`), booking time field alignment (`eventStartTime`), added `data-testid="book-now-button"`, added success-screen testids (`booking-success`, `booking-reference`, confirmation blocks), and significantly improved booking modal a11y (focus trap, aria attributes, focus restore, aria-hidden background).
+- Remaining gaps: several E2E selectors still drift from the UI (mobile flow, service toggles, error/pricing testids), and missing tests for API route handlers and client API utilities.
 
 ---
 
@@ -25,11 +25,15 @@ This document summarizes strengths and concrete recommendations across code qual
    - Client availability now calls `/api/bookings/availability?month=&year=` and checks the specific date’s membership in results (see `src/lib/api.ts`). Server endpoint remains month/year (good).
    - Client, types, and server now consistently use `eventStartTime`/`eventEndTime`.
 
-2) E2E tests and UI selectors partially out of sync
-   - Playwright opens the modal via `[data-testid="book-now-button"]` and asserts `[data-testid="booking-modal"]` — now aligned with the UI.
-   - Remaining mismatches in tests: they still expect `[data-testid="booking-success"]` and `[data-testid="booking-reference"]` after submission. The UI shows `success-message` via `CelebrationService` and renders the reference as plain text without a testid.
-   - The mobile responsiveness test still expects navigation to `/booking` and `mobile-*` selectors on the homepage, which do not exist.
-   - Recommendation: update the E2E to use existing testids/text or instrument the UI with the expected testids; alternatively introduce a `/booking` route. Consider a shared constants file for testids to avoid future drift.
+2) E2E tests and UI selectors: progress, with remaining drift
+   - Playwright opens the modal via `[data-testid="book-now-button"]` and asserts `[data-testid="booking-modal"]` — aligned with the UI.
+   - Success path is now aligned: UI exposes `[data-testid="booking-success"]`, `[data-testid="booking-reference"]`, `[data-testid="confirmed-name|date|services"]`, `[data-testid="next-steps"]`, `[data-testid="payment-info"]`, and `[data-testid="add-to-calendar"]`.
+   - Still mismatched expectations in tests:
+     - Mobile flow: tests expect `mobile-header`, `mobile-menu`, `mobile-book-now` and `/booking` navigation; homepage uses a modal and does not expose these testids.
+     - Service toggles: tests use `[data-testid="service-dj"]`/`service-photography`, while UI provides `[data-testid="service-card-dj"]` etc. (from `ServiceCard`).
+     - Error-state assertions: tests reference `[data-testid="booking-error"]` and `[data-testid="retry-button"]` that are not present; errors are inline/toast.
+     - Pricing signals: tests assert `dj-info`, `estimated-price`, `package-discount` which aren’t implemented as testids (there is a pricing summary without testid).
+   - Recommendation: update tests to match current UI testids/flow, or instrument the UI with the expected testids. Consider centralizing testid constants.
 
 3) Modal accessibility/focus management (largely addressed)
    - `src/app/page.tsx` adds `role="dialog"`, `aria-modal`, `aria-labelledby`, background scroll lock, background `aria-hidden`, focus trap, and focus restoration. Nice work.
@@ -130,19 +134,19 @@ This document summarizes strengths and concrete recommendations across code qual
 
 ## Documentation & Environment
 - `.env.example`
-  - Still recommend adding: `FROM_EMAIL`, `VERIFIED_EMAIL`, `ENABLE_RATE_LIMIT` (with explanatory comments about modes: `true`, `log`, disabled).
-  - Consider `TEST_DATABASE_URL` if Playwright/integration tests will seed an isolated DB.
+  - Updated: now includes `FROM_EMAIL`, `VERIFIED_EMAIL`, and `ENABLE_RATE_LIMIT` with helpful comments. Consider uncommenting `TEST_DATABASE_URL` when introducing DB-backed integration tests.
 
 ---
 
 ## Quick Fix Checklist
 - [x] Standardize availability endpoint params (`month/year` in client and server).
 - [x] Align booking time field names: `eventStartTime` across client/types/server.
-- [ ] Sync remaining Playwright selectors with the UI (success and mobile cases) or instrument UI to match.
+- [x] Success confirmation testids aligned with E2E.
 - [x] Add modal focus trap + focus restore and aria labelling.
+- [x] Extend `.env.example` with email/rate-limit keys.
+- [ ] Sync remaining Playwright selectors (mobile flow, service toggles, error/pricing testids) or instrument UI to match.
 - [ ] Add API route tests for `bookings` GET/POST with success/error/rate-limit paths.
 - [ ] Add tests for `src/lib/api.ts` and `src/lib/rate-limiter.ts`.
-- [ ] Extend `.env.example` with email/rate-limit keys.
 - [ ] Investigate using `next/image` for gallery thumbnails (with correct sizes).
 
 ---
