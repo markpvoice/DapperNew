@@ -353,7 +353,7 @@ export function ProgressCelebration({
 
           {/* Celebration message */}
           <div className="mb-4">
-            <h3 className="text-xl font-bold text-brand-charcoal mb-2" role="heading" level={3}>
+            <h3 className="text-xl font-bold text-brand-charcoal mb-2">
               {tailoredHeadline}
             </h3>
             <p 

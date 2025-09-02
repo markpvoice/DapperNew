@@ -252,7 +252,7 @@ export function WhatHappensNext({
 
       {/* Header */}
       <div>
-        <h3 className="text-lg font-semibold text-brand-charcoal mb-2" role="heading" level={3}>
+        <h3 className="text-lg font-semibold text-brand-charcoal mb-2">
           What Happens Next?
         </h3>
         
@@ -329,7 +329,7 @@ export function WhatHappensNext({
         {/* Timeline section */}
         <div className={`border-t border-gray-200 pt-4 ${window.innerWidth <= 768 ? 'mobile-collapsible' : ''}`} data-testid="timeline-section">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="font-medium text-brand-charcoal" role="heading" level={4}>
+            <h4 className="font-medium text-brand-charcoal">
               Timeline
             </h4>
             <button

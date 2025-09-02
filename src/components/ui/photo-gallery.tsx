@@ -38,6 +38,15 @@ const ASPECT_RATIO_CLASSES = {
   wide: 'aspect-[16/10]',
 };
 
+const GRID_COLUMNS_CLASSES = {
+  1: 'lg:grid-cols-1',
+  2: 'lg:grid-cols-2', 
+  3: 'lg:grid-cols-3',
+  4: 'lg:grid-cols-4',
+  5: 'lg:grid-cols-5',
+  6: 'lg:grid-cols-6',
+};
+
 export function PhotoGallery({
   photos,
   columns = 3,
@@ -139,7 +148,7 @@ export function PhotoGallery({
   }
 
   const currentPhoto = photos[currentPhotoIndex];
-  const gridColsClass = `grid-cols-${columns}`;
+  const gridColsClass = GRID_COLUMNS_CLASSES[columns as keyof typeof GRID_COLUMNS_CLASSES] || 'lg:grid-cols-3';
 
   return (
     <div className={className}>
@@ -172,44 +181,47 @@ export function PhotoGallery({
         </div>
       )}
 
+
       {/* Photo Grid */}
       <div
         role="grid"
         aria-label="Photo gallery"
-        className={`grid grid-cols-1 md:grid-cols-2 lg:${gridColsClass} gap-4`}
+        className={`grid grid-cols-1 md:grid-cols-2 ${gridColsClass} gap-4`}
       >
         {filteredPhotos.map((photo, index) => (
-          <button
+          <div
             key={photo.id}
+            className="group relative overflow-hidden rounded-lg bg-gray-200 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
             onClick={() => openLightbox(index)}
-            className="group relative overflow-hidden rounded-lg bg-gray-200 hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2"
-            aria-label={`View ${photo.alt} in lightbox`}
           >
             <div 
               data-testid={`thumbnail-${photo.id}`}
               className={`relative ${ASPECT_RATIO_CLASSES[aspectRatio]} overflow-hidden`}
             >
-              <Image
+              <img
                 src={photo.thumbnail || photo.src}
                 alt={photo.alt}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                priority={!lazyLoad}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading={lazyLoad ? "lazy" : "eager"}
               />
               
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="w-12 h-12 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                    </svg>
-                  </div>
+              {/* Hover overlay */}
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity duration-300 flex items-center justify-center">
+                <div className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                  </svg>
                 </div>
               </div>
             </div>
-          </button>
+
+            {/* Caption */}
+            {photo.caption && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                <p className="text-white text-sm font-medium truncate">{photo.caption}</p>
+              </div>
+            )}
+          </div>
         ))}
       </div>
 

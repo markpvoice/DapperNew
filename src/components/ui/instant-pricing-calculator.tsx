@@ -223,7 +223,7 @@ export function InstantPricingCalculator({
     >
       {/* Main pricing display */}
       <div className="flex-1">
-        <h3 className="text-lg font-semibold text-brand-charcoal mb-3" role="heading" level={3}>
+        <h3 className="text-lg font-semibold text-brand-charcoal mb-3">
           Pricing Summary
         </h3>
 
@@ -264,7 +264,7 @@ export function InstantPricingCalculator({
         {pricingData.hasDiscount && (
           <div className="space-y-3 mb-4">
             {/* Package discount */}
-            {pricingData.packageDiscount > 0 && (
+            {(pricingData.packageDiscount ?? 0) > 0 && (
               <div className="bg-green-50 border border-green-200 rounded p-3" data-testid="package-discount">
                 <div className="flex items-center justify-between">
                   <div>
@@ -272,7 +272,7 @@ export function InstantPricingCalculator({
                       {pricingData.packageName}
                     </div>
                     <div className="text-green-600" data-testid="package-discount-amount">
-                      Save {formatPrice(pricingData.packageDiscount)}
+                      Save {formatPrice(pricingData.packageDiscount ?? 0)}
                     </div>
                   </div>
                   <div className="text-green-600">
@@ -316,7 +316,7 @@ export function InstantPricingCalculator({
                     Total Savings: {formatPrice(pricingData.discount)}
                   </div>
                   <div className="text-yellow-700 text-sm">
-                    You're saving {Math.round((pricingData.discount / (pricingData.subtotalMin + pricingData.discount)) * 100)}% on your booking!
+                    You're saving {Math.round((pricingData.discount / ((pricingData.subtotalMin ?? 0) + pricingData.discount)) * 100)}% on your booking!
                   </div>
                 </div>
               </div>
@@ -372,7 +372,7 @@ export function InstantPricingCalculator({
                   <div className="flex justify-between items-center py-1" data-testid="subtotal">
                     <span className="text-brand-charcoal">Subtotal:</span>
                     <span className="text-brand-dark-gray">
-                      {formatPrice(pricingData.subtotalMin)} - {formatPrice(pricingData.subtotalMax)}
+                      {formatPrice(pricingData.subtotalMin ?? 0)} - {formatPrice(pricingData.subtotalMax ?? 0)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-1 text-green-600" data-testid="discount-line">
