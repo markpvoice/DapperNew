@@ -58,6 +58,52 @@ const config: Config = {
           charcoal: '#2C2C2C',
           'light-gray': '#F8F9FA',
           'dark-gray': '#6C757D',
+          // Extended brand palette
+          platinum: '#E5E5E5',
+          pearl: '#F8F8FF',
+          champagne: '#F7E7CE',
+          bronze: '#CD7F32',
+          copper: '#B87333',
+          slate: '#708090',
+          ash: '#B2BEB5',
+          carbon: '#36454F',
+        },
+        // Accent colors for variety
+        accent: {
+          emerald: '#50C878',
+          sapphire: '#0F52BA',
+          ruby: '#E0115F',
+          amethyst: '#9966CC',
+          coral: '#FF7F50',
+          mint: '#98FB98',
+        },
+        // Semantic colors
+        success: {
+          primary: '#10B981',
+          secondary: '#D1FAE5',
+        },
+        warning: {
+          primary: '#F59E0B',
+          secondary: '#FEF3C7',
+        },
+        error: {
+          primary: '#EF4444',
+          secondary: '#FEE2E2',
+        },
+        info: {
+          primary: '#3B82F6',
+          secondary: '#DBEAFE',
+        },
+        // High contrast colors
+        'high-contrast': {
+          light: '#FFFFFF',
+          dark: '#000000',
+        },
+        // Colorblind-safe colors
+        'colorblind-safe': {
+          primary: '#0173B2',
+          secondary: '#DE8F05',
+          accent: '#CC78BC',
         },
       },
       borderRadius: {
@@ -92,6 +138,42 @@ const config: Config = {
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         heading: ['var(--font-playfair)', 'serif'],
+        luxury: ['var(--font-playfair)', 'Georgia', 'serif'],
+      },
+      fontSize: {
+        // Enhanced typography scale
+        'display-large': ['4.5rem', { lineHeight: '1.1', letterSpacing: '-0.025em', fontWeight: '700' }],
+        'display-medium': ['3.75rem', { lineHeight: '1.1', letterSpacing: '-0.025em', fontWeight: '700' }],
+        'display-small': ['3rem', { lineHeight: '1.2', letterSpacing: '-0.025em', fontWeight: '600' }],
+        'headline-large': ['2.25rem', { lineHeight: '1.3', letterSpacing: '-0.02em', fontWeight: '600' }],
+        'headline-medium': ['1.875rem', { lineHeight: '1.3', letterSpacing: '-0.02em', fontWeight: '600' }],
+        'headline-small': ['1.5rem', { lineHeight: '1.4', letterSpacing: '-0.015em', fontWeight: '600' }],
+        'title-large': ['1.375rem', { lineHeight: '1.4', letterSpacing: '-0.01em', fontWeight: '500' }],
+        'title-medium': ['1.125rem', { lineHeight: '1.5', letterSpacing: '-0.01em', fontWeight: '500' }],
+        'title-small': ['0.875rem', { lineHeight: '1.5', letterSpacing: '0em', fontWeight: '500' }],
+        'body-large': ['1rem', { lineHeight: '1.6', letterSpacing: '0em', fontWeight: '400' }],
+        'body-medium': ['0.875rem', { lineHeight: '1.6', letterSpacing: '0.01em', fontWeight: '400' }],
+        'body-small': ['0.75rem', { lineHeight: '1.5', letterSpacing: '0.01em', fontWeight: '400' }],
+        'label-large': ['0.875rem', { lineHeight: '1.4', letterSpacing: '0.01em', fontWeight: '500' }],
+        'label-medium': ['0.75rem', { lineHeight: '1.4', letterSpacing: '0.05em', fontWeight: '500' }],
+        'label-small': ['0.6875rem', { lineHeight: '1.4', letterSpacing: '0.05em', fontWeight: '500' }],
+      },
+      fontWeight: {
+        'weight-light': '300',
+        'weight-regular': '400',
+        'weight-medium': '500',
+        'weight-semibold': '600',
+        'weight-bold': '700',
+        'weight-extrabold': '800',
+      },
+      // Background utilities for gradient animations
+      backgroundSize: {
+        'size-200': '200% 100%',
+        'size-300': '300% 100%',
+      },
+      backgroundPosition: {
+        'pos-0': '0% 0%',
+        'pos-100': '100% 0%',
       },
     },
   },

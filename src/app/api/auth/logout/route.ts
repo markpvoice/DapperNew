@@ -24,7 +24,7 @@ export async function POST(_request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict', // Consistent security settings
       maxAge: 0, // Expire immediately
-      path: '/admin', // Match the path where it was set
+      path: '/', // Match the path where it is set
     });
 
     response.cookies.set('refresh-token', '', {
@@ -32,7 +32,7 @@ export async function POST(_request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict', // Consistent security settings
       maxAge: 0, // Expire immediately
-      path: '/api/auth', // Match the path where it was set
+      path: '/api', // Match the path where it is set
     });
 
     // Clear legacy auth-token as well

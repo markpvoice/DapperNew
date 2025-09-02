@@ -17,8 +17,9 @@ const createBookingSchema = z.object({
   clientEmail: z.string().email('Invalid email format').max(255),
   clientPhone: z.string().min(1, 'Phone number is required').max(20),
   eventDate: z.string().transform(str => new Date(str)),
-  eventStartTime: z.string().transform(str => new Date(str)).optional(),
-  eventEndTime: z.string().transform(str => new Date(str)).optional(),
+  // Accept HH:MM strings from the form and combine with eventDate later
+  eventStartTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  eventEndTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
   eventType: z.string().min(1, 'Event type is required').max(100),
   services: z.array(z.string()).min(1, 'At least one service is required'),
   venueName: z.string().max(255).optional(),
@@ -168,7 +169,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const bookingData = validation.data;
+    const data = validation.data;
+
+    // Build proper Date objects for start/end time by combining with eventDate
+    const combineDateAndTime = (date: Date, time?: string): Date | undefined => {
+      if (!time) {
+        return undefined;
+      }
+      const [hh, mm] = time.split(':').map((s) => parseInt(s, 10));
+      const d = new Date(date);
+      d.setHours(hh || 0, mm || 0, 0, 0);
+      return d;
+    };
+
+    const bookingData = {
+      clientName: data.clientName,
+      clientEmail: data.clientEmail,
+      clientPhone: data.clientPhone,
+      eventDate: data.eventDate,
+      eventStartTime: combineDateAndTime(data.eventDate as Date, data.eventStartTime),
+      eventEndTime: combineDateAndTime(data.eventDate as Date, data.eventEndTime),
+      eventType: data.eventType,
+      services: data.services,
+      venueName: data.venueName,
+      venueAddress: data.venueAddress,
+      guestCount: data.guestCount,
+      specialRequests: data.specialRequests,
+      totalAmount: data.totalAmount,
+      depositAmount: data.depositAmount,
+    };
 
     // Validate event date is in the future
     if (bookingData.eventDate < new Date()) {

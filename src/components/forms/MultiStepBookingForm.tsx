@@ -7,6 +7,13 @@ import { useToast } from '@/hooks/use-toast';
 import { AnimatedProgressBar } from '@/components/ui/animated-progress-bar';
 import { ServiceCard } from '@/components/ui/service-card';
 import { CelebrationService } from '@/components/ui/celebration-service';
+import { InstantPricingCalculator } from '@/components/ui/instant-pricing-calculator';
+import { ServicePreviewModal } from '@/components/ui/service-preview-modal';
+import { ProgressCelebration } from '@/components/ui/progress-celebration';
+import { WhatHappensNext } from '@/components/ui/what-happens-next';
+import { MobileFormNavigation } from '@/components/ui/mobile-form-navigation';
+import { SwipeFormContainer } from '@/components/ui/swipe-form-container';
+import { useMobileOptimizations } from '@/hooks/use-mobile-optimizations';
 
 // Types
 interface Service {
@@ -88,7 +95,22 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
     isSubmitting: false,
     isCompleted: false
   });
+  
+  // Enhanced UX state
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewServiceId, setPreviewServiceId] = useState<string | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebratingStep, setCelebratingStep] = useState<string>('');
+  const [validationState, setValidationState] = useState<Record<string, 'success' | 'error' | null>>({});
+  
   const { toast } = useToast();
+
+  // Mobile optimizations
+  const { 
+    isMobile, 
+    getMobileClasses, 
+    getMobileInputProps 
+  } = useMobileOptimizations();
 
   // Helper function to generate calendar event data
   const generateCalendarEvent = () => {
@@ -177,45 +199,99 @@ END:VCALENDAR`;
 
   const validateStep = useCallback((step: number): boolean => {
     const newErrors: Record<string, string> = {};
+    const newValidationState: Record<string, 'success' | 'error' | null> = { ...validationState };
 
     switch (step) {
       case 0: // Service selection
         if (formData.services.length === 0) {
           newErrors.services = 'Please select at least one service';
+          newValidationState.services = 'error';
+        } else {
+          newValidationState.services = 'success';
         }
         break;
       case 1: // Date & Time
         if (!formData.eventDate) {
           newErrors.eventDate = 'Please select an event date';
+          newValidationState.eventDate = 'error';
+        } else {
+          // Check if date is in the future
+          const selectedDate = new Date(formData.eventDate);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          if (selectedDate < today) {
+            newErrors.eventDate = 'Please select a future date';
+            newValidationState.eventDate = 'error';
+          } else {
+            newValidationState.eventDate = 'success';
+          }
         }
+        
         if (!formData.eventStartTime) {
           newErrors.eventStartTime = 'Please select an event time';
+          newValidationState.eventStartTime = 'error';
+        } else {
+          newValidationState.eventStartTime = 'success';
         }
         break;
       case 2: // Event Details
         if (!formData.eventType) {
           newErrors.eventType = 'Please specify the event type';
+          newValidationState.eventType = 'error';
+        } else {
+          newValidationState.eventType = 'success';
         }
+        
         if (!formData.venue) {
           newErrors.venue = 'Please provide venue information';
+          newValidationState.venue = 'error';
+        } else {
+          newValidationState.venue = 'success';
         }
         break;
       case 3: // Contact Information
-        if (!formData.clientName) {
-          newErrors.clientName = 'Please provide your name';
+        if (!formData.clientName || formData.clientName.trim().length < 2) {
+          newErrors.clientName = 'Please provide your full name (at least 2 characters)';
+          newValidationState.clientName = 'error';
+        } else {
+          newValidationState.clientName = 'success';
         }
+        
         if (!formData.clientEmail) {
           newErrors.clientEmail = 'Please provide your email';
+          newValidationState.clientEmail = 'error';
+        } else {
+          // Enhanced email validation
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(formData.clientEmail)) {
+            newErrors.clientEmail = 'Please enter a valid email address (e.g., john@example.com)';
+            newValidationState.clientEmail = 'error';
+          } else {
+            newValidationState.clientEmail = 'success';
+          }
         }
+        
         if (!formData.clientPhone) {
           newErrors.clientPhone = 'Please provide your phone number';
+          newValidationState.clientPhone = 'error';
+        } else {
+          // Enhanced phone validation
+          const phoneDigits = formData.clientPhone.replace(/\D/g, '');
+          if (phoneDigits.length < 10) {
+            newErrors.clientPhone = 'Please enter a valid phone number (at least 10 digits)';
+            newValidationState.clientPhone = 'error';
+          } else {
+            newValidationState.clientPhone = 'success';
+          }
         }
         break;
     }
 
     setErrors(newErrors);
+    setValidationState(newValidationState);
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  }, [formData, validationState]);
 
   const handleNext = useCallback(() => {
     if (validateStep(currentStep)) {
@@ -223,19 +299,28 @@ END:VCALENDAR`;
       if (!completedSteps.includes(currentStep)) {
         setCompletedSteps(prev => [...prev, currentStep]);
         
+        // Trigger celebration
+        setShowCelebration(true);
+        setCelebratingStep(STEPS[currentStep]);
+        
         // Dispatch step completion event for celebrations
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('step-completed', {
             detail: { 
-              step: currentStep, 
+              step: currentStep + 1, // 1-indexed for display
               stepName: STEPS[currentStep], 
-              totalSteps: STEPS.length 
+              totalSteps: STEPS.length,
+              isLastStep: currentStep === STEPS.length - 2
             }
           }));
         }
       }
       
-      setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
+      // Short delay to show celebration before moving to next step
+      setTimeout(() => {
+        setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
+        setShowCelebration(false);
+      }, 1000);
     }
   }, [currentStep, validateStep, completedSteps]);
 
@@ -252,7 +337,31 @@ END:VCALENDAR`;
     
     updateFormData({ services: updatedServices });
     setErrors(prev => ({ ...prev, services: '' })); // Clear service selection error
+    
+    // Update validation state for immediate feedback
+    if (updatedServices.length > 0) {
+      setValidationState(prev => ({ ...prev, services: 'success' }));
+    }
   }, [formData.services, updateFormData]);
+
+  const handleServicePreview = useCallback((serviceId: string) => {
+    setPreviewServiceId(serviceId);
+    setPreviewModalOpen(true);
+  }, []);
+
+  const closeServicePreview = useCallback(() => {
+    setPreviewModalOpen(false);
+    setPreviewServiceId(null);
+  }, []);
+
+  const handleServiceSelectFromModal = useCallback((serviceId: string) => {
+    const currentServices = formData.services;
+    if (!currentServices.includes(serviceId)) {
+      updateFormData({ services: [...currentServices, serviceId] });
+      setValidationState(prev => ({ ...prev, services: 'success' }));
+    }
+    closeServicePreview();
+  }, [formData.services, updateFormData, closeServicePreview]);
 
   const calculateTotalPrice = useCallback(() => {
     const selectedServices = SERVICES.filter(service => formData.services.includes(service.id));
@@ -280,7 +389,8 @@ END:VCALENDAR`;
         eventEndTime: formData.eventEndTime ? String(formData.eventEndTime) : undefined,
         eventType: String(formData.eventType || ''),
         services: Array.isArray(formData.services) ? [...formData.services] : [],
-        venue: String(formData.venue || '').trim(),
+        // Align with API schema: venueName
+        venueName: String(formData.venue || '').trim() as any,
         venueAddress: formData.venueAddress ? String(formData.venueAddress).trim() : undefined,
         guestCount: formData.guestCount ? Number(formData.guestCount) : undefined,
         specialRequests: formData.specialRequests ? String(formData.specialRequests).trim() : undefined
@@ -454,36 +564,93 @@ END:VCALENDAR`;
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {SERVICES.map((service, index) => (
-                <ServiceCard
-                  key={service.id}
-                  id={service.id}
-                  name={service.name}
-                  description={service.description}
-                  priceRange={`$${service.priceRange.min} - $${service.priceRange.max}`}
-                  isSelected={formData.services.includes(service.id)}
-                  isPopular={index === 0} // Mark first service as popular for demo
-                  onSelect={handleServiceToggle}
-                  className="h-full"
-                />
+                <div key={service.id} className="relative">
+                  <ServiceCard
+                    id={service.id}
+                    name={service.name}
+                    description={service.description}
+                    priceRange={`$${service.priceRange.min} - $${service.priceRange.max}`}
+                    isSelected={formData.services.includes(service.id)}
+                    isPopular={index === 0} // Mark first service as popular for demo
+                    onSelect={handleServiceToggle}
+                    className="h-full"
+                  />
+                  {/* Service preview button */}
+                  <button
+                    onClick={() => handleServicePreview(service.id)}
+                    className="absolute top-2 left-2 bg-white bg-opacity-90 hover:bg-opacity-100 text-brand-charcoal p-2 rounded-full shadow-md transition-all duration-200"
+                    aria-label={`Preview ${service.name} details`}
+                    data-testid={`service-preview-${service.id}`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                  </button>
+                </div>
               ))}
             </div>
 
-            {formData.services.length > 0 && (
-              <div className="bg-brand-light-gray p-4 rounded-lg">
-                <h4 className="font-semibold text-brand-charcoal">Pricing Summary</h4>
-                {(() => {
-                  const { min, max } = calculateTotalPrice();
-                  return (
-                    <p className="text-brand-gold font-medium">
-                      Total Estimated: ${min} - ${max}
-                    </p>
-                  );
-                })()}
+            {/* Enhanced pricing calculator */}
+            {formData.services.length > 0 ? (
+              <InstantPricingCalculator
+                selectedServices={formData.services}
+                allServices={SERVICES}
+                className="mt-6"
+              />
+            ) : (
+              <InstantPricingCalculator
+                selectedServices={[]}
+                allServices={SERVICES}
+                className="mt-6"
+              />
+            )}
+
+            {/* Validation feedback */}
+            {errors.services && (
+              <div className="text-red-600 text-sm flex items-center space-x-2" role="alert" aria-live="assertive">
+                <span data-testid="validation-error-services">{errors.services}</span>
+                <span className="text-xs text-red-500" data-suggestion="Choose from our DJ, Karaoke, or Photography services">
+                  💡 Choose from our DJ, Karaoke, or Photography services
+                </span>
               </div>
             )}
 
-            {errors.services && (
-              <p className="text-red-600 text-sm">{errors.services}</p>
+            {validationState.services === 'success' && !errors.services && (
+              <div className="text-green-600 text-sm flex items-center space-x-2" data-testid="validation-success-services">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>Great choice! {formData.services.length} service{formData.services.length > 1 ? 's' : ''} selected</span>
+              </div>
+            )}
+
+            {/* Live region for screen readers */}
+            <div className="sr-only" aria-live="polite" data-testid="validation-messages"></div>
+
+            {/* Mobile/Desktop Navigation */}
+            {!isMobile && (
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-2">
+                <div className="flex gap-3 w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onCancel}
+                    className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    className="bg-brand-gold hover:bg-brand-dark-gold text-white w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
         );
@@ -508,7 +675,16 @@ END:VCALENDAR`;
                   min={new Date().toISOString().split('T')[0]}
                   aria-describedby={errors.eventDate ? 'eventDate-error' : undefined}
                   aria-invalid={errors.eventDate ? 'true' : 'false'}
-                  className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold text-base sm:text-sm"
+                  className={`
+                    w-full px-3 border border-gray-300 rounded-md 
+                    focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold 
+                    text-base sm:text-sm
+                    ${getMobileClasses({ touchTarget: true })}
+                  `}
+                  style={{ 
+                    minHeight: isMobile ? '48px' : 'auto',
+                    fontSize: isMobile ? '16px' : 'inherit' // Prevent iOS zoom
+                  }}
                 />
                 {errors.eventDate && (
                   <p id="eventDate-error" className="text-red-600 text-sm mt-1" role="alert" aria-live="polite">{errors.eventDate}</p>
@@ -546,6 +722,39 @@ END:VCALENDAR`;
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold max-w-xs"
               />
             </div>
+
+            {/* Mobile/Desktop Navigation */}
+            {!isMobile && (
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-2">
+                <div className="flex gap-3 w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBack}
+                    className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onCancel}
+                    className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    className="bg-brand-gold hover:bg-brand-dark-gold text-white w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -646,6 +855,39 @@ END:VCALENDAR`;
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
               />
             </div>
+
+            {/* Mobile/Desktop Navigation */}
+            {!isMobile && (
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-2">
+                <div className="flex gap-3 w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBack}
+                    className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onCancel}
+                    className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    className="bg-brand-gold hover:bg-brand-dark-gold text-white w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -688,13 +930,23 @@ END:VCALENDAR`;
                 onChange={(e) => updateFormData({ clientEmail: e.target.value })}
                 placeholder="your.email@example.com"
                 autoComplete="email"
-                inputMode="email"
+                {...getMobileInputProps('email')}
                 aria-describedby={errors.clientEmail ? 'clientEmail-error' : undefined}
                 aria-invalid={errors.clientEmail ? 'true' : 'false'}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
+                className={`
+                  w-full px-3 py-2 border border-gray-300 rounded-md 
+                  focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold
+                  ${getMobileClasses({ touchTarget: true })}
+                `}
+                style={{ 
+                  minHeight: isMobile ? '48px' : 'auto',
+                  fontSize: isMobile ? '16px' : 'inherit'
+                }}
               />
               {errors.clientEmail && (
-                <p id="clientEmail-error" className="text-red-600 text-sm mt-1" role="alert" aria-live="polite">{errors.clientEmail}</p>
+                <p id="clientEmail-error" className="text-red-600 text-sm mt-1" role="alert" aria-live="polite" data-testid="validation-error-email">
+                  {errors.clientEmail}
+                </p>
               )}
             </div>
 
@@ -710,15 +962,58 @@ END:VCALENDAR`;
                 onChange={(e) => updateFormData({ clientPhone: e.target.value })}
                 placeholder="(555) 123-4567"
                 autoComplete="tel"
-                inputMode="tel"
+                {...getMobileInputProps('tel')}
                 aria-describedby={errors.clientPhone ? 'clientPhone-error' : undefined}
                 aria-invalid={errors.clientPhone ? 'true' : 'false'}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold"
+                className={`
+                  w-full px-3 py-2 border border-gray-300 rounded-md 
+                  focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold
+                  ${getMobileClasses({ touchTarget: true })}
+                `}
+                style={{ 
+                  minHeight: isMobile ? '48px' : 'auto',
+                  fontSize: isMobile ? '16px' : 'inherit'
+                }}
               />
               {errors.clientPhone && (
-                <p id="clientPhone-error" className="text-red-600 text-sm mt-1" role="alert" aria-live="polite">{errors.clientPhone}</p>
+                <p id="clientPhone-error" className="text-red-600 text-sm mt-1" role="alert" aria-live="polite" data-testid="validation-error-phone">
+                  {errors.clientPhone}
+                </p>
               )}
             </div>
+
+            {/* Mobile/Desktop Navigation */}
+            {!isMobile && (
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-2">
+                <div className="flex gap-3 w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBack}
+                    className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onCancel}
+                    className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    className="bg-brand-gold hover:bg-brand-dark-gold text-white w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -768,6 +1063,41 @@ END:VCALENDAR`;
             {errors.submit && (
               <p className="text-red-600 text-sm">{errors.submit}</p>
             )}
+
+            {/* Mobile/Desktop Navigation (Submit) */}
+            {!isMobile && (
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-2">
+                <div className="flex gap-3 w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBack}
+                    className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onCancel}
+                    className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    onClick={handleSubmit}
+                    className="bg-brand-gold hover:bg-brand-dark-gold text-white w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
+                    disabled={bookingState.isSubmitting}
+                    data-testid="submit-booking"
+                  >
+                    {bookingState.isSubmitting ? 'Submitting...' : 'Submit Booking'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -777,7 +1107,15 @@ END:VCALENDAR`;
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4 sm:p-6">
+    <div 
+      className={`
+        max-w-4xl mx-auto p-4 sm:p-6 
+        ${isMobile && !bookingState.isCompleted ? 'pb-32' : ''}
+        touch-manipulation
+      `} 
+      data-testid="booking-form"
+      style={{ touchAction: 'manipulation' }}
+    >
       {/* Enhanced Progress Indicator - Hidden when booking is completed */}
       {!bookingState.isCompleted && (
         <div className="mb-6 sm:mb-8">
@@ -785,65 +1123,78 @@ END:VCALENDAR`;
             steps={STEPS}
             currentStep={currentStep}
             completedSteps={completedSteps}
-            className=""
+            className={getMobileClasses({ touchTarget: true })}
           />
         </div>
       )}
 
-      {/* Step Content */}
-      <div className="mb-8">
-        {renderStep()}
+      {/* Main content area with sidebar layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        {/* Form content - takes 2/3 on large screens */}
+        <div className="lg:col-span-2">
+          <SwipeFormContainer
+            currentStep={currentStep}
+            totalSteps={STEPS.length}
+            onSwipeNext={handleNext}
+            onSwipePrevious={handleBack}
+            canSwipeNext={Object.keys(errors).length === 0}
+            canSwipePrevious={currentStep > 0}
+            disabled={bookingState.isCompleted || bookingState.isSubmitting}
+          >
+            {renderStep()}
+          </SwipeFormContainer>
+        </div>
+
+        {/* What Happens Next sidebar - 1/3 on large screens */}
+        {!bookingState.isCompleted && (
+          <div className="lg:col-span-1 order-first lg:order-last">
+            <WhatHappensNext
+              currentStep={currentStep}
+              totalSteps={STEPS.length}
+              formData={formData}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Navigation Buttons - Hidden when booking is completed */}
-      {!bookingState.isCompleted && (
-        <div className="flex flex-col sm:flex-row justify-between space-y-3 sm:space-y-0">
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-            {currentStep > 0 && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleBack}
-                className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
-              >
-                Back
-              </Button>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              className="w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
-            >
-              Cancel
-            </Button>
-          </div>
-
-          <div className="w-full sm:w-auto">
-            {currentStep < STEPS.length - 1 ? (
-              <Button
-                type="button"
-                onClick={handleNext}
-                className="bg-brand-gold hover:bg-brand-dark-gold text-white w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
-              >
-                Next
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                onClick={handleSubmit}
-                className="bg-brand-gold hover:bg-brand-dark-gold text-white w-full sm:w-auto py-3 sm:py-2 text-base sm:text-sm"
-                disabled={bookingState.isSubmitting}
-                data-testid="submit-booking"
-              >
-                {bookingState.isSubmitting ? 'Submitting...' : 'Submit Booking'}
-              </Button>
-            )}
-          </div>
-        </div>
+      {/* Mobile Navigation - Fixed at bottom */}
+      {isMobile && !bookingState.isCompleted && (
+        <MobileFormNavigation
+          currentStep={currentStep}
+          totalSteps={STEPS.length}
+          canGoNext={Object.keys(errors).length === 0}
+          canGoBack={currentStep > 0}
+          isSubmitting={bookingState.isSubmitting}
+          onNext={currentStep === STEPS.length - 1 ? handleSubmit : handleNext}
+          onBack={handleBack}
+          onCancel={onCancel}
+        />
       )}
       
-      {/* Celebration Service for animations */}
+      {/* Enhanced UX Components */}
+      
+      {/* Service Preview Modal */}
+      {previewServiceId && (
+        <ServicePreviewModal
+          isOpen={previewModalOpen}
+          serviceId={previewServiceId}
+          serviceName={SERVICES.find(s => s.id === previewServiceId)?.name}
+          onClose={closeServicePreview}
+          onSelect={handleServiceSelectFromModal}
+        />
+      )}
+      
+      {/* Progress Celebration */}
+      <ProgressCelebration
+        show={showCelebration}
+        stepName={celebratingStep}
+        stepNumber={currentStep + 1}
+        totalSteps={STEPS.length}
+        onComplete={() => setShowCelebration(false)}
+        playSound={true}
+      />
+      
+      {/* Original Celebration Service for backwards compatibility */}
       <CelebrationService />
     </div>
   );

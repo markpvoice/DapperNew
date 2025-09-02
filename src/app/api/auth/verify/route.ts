@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict', // Enhanced CSRF protection
         maxAge: 60 * 60, // 1 hour
-        path: '/admin', // Scope to admin routes only
+        path: '/', // Make available to both /admin pages and /api calls
       });
 
       response.cookies.set('refresh-token', tokens.refreshToken, {
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict', // Enhanced CSRF protection
         maxAge: 7 * 24 * 60 * 60, // 7 days
-        path: '/api/auth', // Scope to auth endpoints only
+        path: '/api', // Allow refresh on /api auth endpoints
       });
 
       // Keep legacy token for backward compatibility

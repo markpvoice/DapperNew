@@ -39,6 +39,10 @@ describe('Form Validation UX Enhancements', () => {
     it('should have proper accessibility attributes for date input', async () => {
       render(<MultiStepBookingForm {...mockProps} />);
       
+      // First select a service (required for step validation)
+      const djServiceButton = screen.getByText('DJ Services');
+      fireEvent.click(djServiceButton);
+      
       // Navigate to date selection step
       fireEvent.click(screen.getByText('Next'));
       
@@ -59,6 +63,10 @@ describe('Form Validation UX Enhancements', () => {
 
     it('should show accessible error message when date validation fails', async () => {
       render(<MultiStepBookingForm {...mockProps} />);
+      
+      // First select a service (required for step validation)
+      const djServiceButton = screen.getByText('DJ Services');
+      fireEvent.click(djServiceButton);
       
       // Navigate to date selection step
       fireEvent.click(screen.getByText('Next'));
@@ -88,6 +96,10 @@ describe('Form Validation UX Enhancements', () => {
     it('should have proper accessibility attributes for time inputs', async () => {
       render(<MultiStepBookingForm {...mockProps} />);
       
+      // First select a service (required for step validation)
+      const djServiceButton = screen.getByText('DJ Services');
+      fireEvent.click(djServiceButton);
+      
       // Navigate to date/time step
       fireEvent.click(screen.getByText('Next'));
       
@@ -102,6 +114,10 @@ describe('Form Validation UX Enhancements', () => {
 
     it('should show accessible error for missing start time', async () => {
       render(<MultiStepBookingForm {...mockProps} />);
+      
+      // First select a service (required for step validation)
+      const djServiceButton = screen.getByText('DJ Services');
+      fireEvent.click(djServiceButton);
       
       // Navigate to date/time step
       fireEvent.click(screen.getByText('Next'));

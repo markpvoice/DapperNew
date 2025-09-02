@@ -140,7 +140,7 @@ export function AdminLogin({ className = '' }: AdminLoginProps) {
 
           <div className="text-center">
             <p className="text-xs text-gray-600">
-              For demo purposes, use: admin@dappersquad.com / admin123
+              For demo purposes, use: admin@dappersquad.com / admin123!
             </p>
           </div>
         </form>

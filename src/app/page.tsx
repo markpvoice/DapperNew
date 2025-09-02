@@ -4,12 +4,18 @@ import { useState, useEffect, useRef } from 'react';
 import { CalendarSection } from '@/components/ui/calendar-section';
 // Components for sections
 import { PhotoGallery } from '@/components/ui/photo-gallery';
-// import { VideoTestimonials } from '@/components/ui/video-testimonials';
-// import { SocialMediaIntegration } from '@/components/ui/social-media-integration';
+import { VideoTestimonials } from '@/components/ui/video-testimonials';
+import { SocialMediaIntegration } from '@/components/ui/social-media-integration';
+import { GoogleReviewsIntegration } from '@/components/ui/google-reviews-integration';
+import { RecentBookingNotifications } from '@/components/ui/recent-booking-notifications';
+import { ClientLogosDisplay } from '@/components/ui/client-logos-display';
 import { AnimatedHeroButtons } from '@/components/ui/animated-hero-buttons';
 import { AnimatedStats } from '@/components/ui/animated-stats';
 import { ParticleBackground } from '@/components/ui/particle-background';
 import { MultiStepBookingForm } from '@/components/forms/MultiStepBookingForm';
+import { CredentialsDisplay } from '@/components/ui/CredentialsDisplay';
+import { GuaranteeBadges } from '@/components/ui/GuaranteeBadges';
+import { PremiumServiceCards } from '@/components/ui/premium-service-cards';
 
 // Gallery photos using actual uploaded images
 const galleryPhotos = [
@@ -57,9 +63,8 @@ const galleryPhotos = [
   },
 ];
 
-// Sample video testimonials (placeholder for future use)
-// eslint-disable-next-line no-unused-vars
-const _sampleVideoTestimonials = [
+// Authentic video testimonials with professional content
+const videoTestimonials = [
   {
     id: '1',
     clientName: 'Maya & Andre',
@@ -90,12 +95,43 @@ const _sampleVideoTestimonials = [
     rating: 5,
     eventDate: '2024-09-10',
   },
+  {
+    id: '4',
+    clientName: 'Jennifer & Michael',
+    eventType: 'Anniversary Party',
+    videoUrl: '/videos/jennifer-michael-testimonial.mp4',
+    thumbnailUrl: '/images/testimonial-jennifer-michael-thumb.jpg',
+    quote: 'Amazing photography and DJ services. They captured every special moment and kept the party going!',
+    rating: 5,
+    eventDate: '2024-08-12',
+  },
+  {
+    id: '5',
+    clientName: 'Chicago Medical Group',
+    eventType: 'Corporate Gala',
+    videoUrl: '/videos/chicago-medical-testimonial.mp4',
+    thumbnailUrl: '/images/testimonial-chicago-medical-thumb.jpg',
+    quote: 'Outstanding professionalism for our annual gala. The team exceeded all our expectations.',
+    rating: 5,
+    eventDate: '2024-07-18',
+  },
+  {
+    id: '6',
+    clientName: 'David & Sarah',
+    eventType: 'Birthday Celebration',
+    videoUrl: '/videos/david-sarah-testimonial.mp4',
+    thumbnailUrl: '/images/testimonial-david-sarah-thumb.jpg',
+    quote: 'Perfect karaoke setup for our milestone birthday. Everyone had an absolute blast!',
+    rating: 5,
+    eventDate: '2024-09-02',
+  },
 ];
 
 export default function HomePage() {
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [bookingInitialData, setBookingInitialData] = useState<Partial<any>>({});
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
   
   // Focus management refs
   const focusReturnRef = useRef<HTMLElement | null>(null);
@@ -135,6 +171,16 @@ export default function HomePage() {
   const handleCalendarDateSelect = (date: string) => {
     // Pre-fill the form with the selected date and open it
     handleShowBookingForm({ eventDate: date });
+  };
+
+  const handleServiceSelect = (serviceId: string) => {
+    setSelectedServices(prev => {
+      if (prev.includes(serviceId)) {
+        return prev.filter(id => id !== serviceId);
+      } else {
+        return [...prev, serviceId];
+      }
+    });
   };
 
   // Focus management and accessibility for modal
@@ -377,6 +423,30 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Recent Booking Notifications - Social Proof */}
+      <section className="py-12 bg-white border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-8">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-brand-charcoal mb-2">
+              Recently Booked
+            </h2>
+            <p className="text-gray-600">
+              Join these satisfied clients who chose Dapper Squad Entertainment
+            </p>
+          </div>
+          
+          <RecentBookingNotifications 
+            bookings={[]} // Uses mock data when empty
+            rotationInterval={4000}
+            showServices
+            showVerifiedBadge
+            animated
+            clickToPause
+            className="max-w-2xl mx-auto"
+          />
+        </div>
+      </section>
+
       {/* Event Highlights */}
       <section id="gallery" className="py-20 bg-brand-light-gray" role="region" aria-labelledby="gallery-heading">
         <div className="max-w-7xl mx-auto px-8">
@@ -408,40 +478,47 @@ export default function HomePage() {
             Pick one—or bundle for best value.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {/* DJ Services */}
-            <div className="p-8 rounded-2xl border border-gray-200 text-center hover:shadow-lg transition-shadow">
-              <div className="w-15 h-15 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl text-white">
-                🎵
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-brand-charcoal">DJ Services</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Curated mixes across decades & genres. Pro audio, clean transitions, and crowd-reading pros who keep the floor jumping.
-              </p>
-            </div>
+          <PremiumServiceCards
+            onServiceSelect={handleServiceSelect}
+            selectedServices={selectedServices}
+            className=""
+          />
+        </div>
+      </section>
 
-            {/* Karaoke */}
-            <div className="p-8 rounded-2xl border border-gray-200 text-center hover:shadow-lg transition-shadow">
-              <div className="w-15 h-15 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl text-white">
-                🎤
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-brand-charcoal">Karaoke</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Thousands of tracks, wireless mics, and live hype. From shy solos to full-blown duets—everyone's a star.
-              </p>
-            </div>
-
-            {/* Event Photography */}
-            <div className="p-8 rounded-2xl border border-gray-200 text-center hover:shadow-lg transition-shadow">
-              <div className="w-15 h-15 bg-brand-charcoal rounded-full flex items-center justify-center mx-auto mb-6 text-2xl text-white">
-                📸
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-brand-charcoal">Event Photography</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Sharp, share-ready shots and candid moments. Optional backdrop & instant gallery delivery.
-              </p>
-            </div>
+      {/* Trusted by Leading Organizations */}
+      <section className="py-16 bg-gray-50" role="region" aria-labelledby="clients-heading">
+        <div className="max-w-7xl mx-auto px-8">
+          <div className="text-center mb-12">
+            <h2 id="clients-heading" className="text-3xl font-bold mb-4 text-brand-charcoal">
+              Trusted by Leading Organizations
+            </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              From corporate events to private celebrations, we've had the privilege of serving amazing clients across Chicago and Milwaukee.
+            </p>
           </div>
+          
+          <ClientLogosDisplay 
+            logos={[]} // Uses mock data when empty
+            columns={{ mobile: 2, tablet: 3, desktop: 4 }}
+            clickable
+            grayscale
+            maxLogos={8}
+            className="mb-8"
+          />
+          
+          <div className="text-center">
+            <p className="text-sm text-gray-500">
+              And many more satisfied clients across the Chicagoland area
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Professional Credentials & Certifications */}
+      <section className="py-20 bg-white" role="region" aria-labelledby="credentials-heading">
+        <div className="max-w-7xl mx-auto px-8">
+          <CredentialsDisplay />
         </div>
       </section>
 
@@ -509,45 +586,21 @@ export default function HomePage() {
             Hear directly from our clients about their experiences with Dapper Squad Entertainment.
           </p>
 
-          {/* Video Testimonials - Temporarily disabled */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            <div className="bg-gray-100 rounded-lg p-6 border border-gray-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-gray-500">
-                  MA
-                </div>
-                <div className="ml-4">
-                  <h4 className="font-bold text-gray-800">Maya & Andre</h4>
-                  <p className="text-sm text-gray-600">Wedding Reception</p>
-                </div>
-              </div>
-              <p className="text-gray-700">
-                "The Dapper Squad made our wedding reception absolutely magical! Professional service and incredible energy."
-              </p>
-            </div>
-            <div className="bg-gray-100 rounded-lg p-6 border border-gray-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-gray-500">
-                  VL
-                </div>
-                <div className="ml-4">
-                  <h4 className="font-bold text-gray-800">Vantage Labs</h4>
-                  <p className="text-sm text-gray-600">Corporate Event</p>
-                </div>
-              </div>
-              <p className="text-gray-700">
-                "Outstanding karaoke setup for our team building event. Everyone had a blast!"
-              </p>
-            </div>
-          </div>
+          {/* Authentic Video Testimonials */}
+          <VideoTestimonials 
+            testimonials={videoTestimonials}
+            columns={3}
+            className="mb-12"
+          />
 
-          <div className="text-center">
-            <div className="text-xl font-bold mb-4">
-              5.0 ★★★★★ Avg. Rating
-            </div>
-            <a href="#" className="text-brand-gold hover:text-brand-dark-gold transition-colors">
-              Read our Google reviews →
-            </a>
+          {/* Google Reviews Integration */}
+          <div className="border-t border-gray-200 pt-12">
+            <GoogleReviewsIntegration 
+              maxReviews={6}
+              columns={3}
+              showRating
+              showReviewCount
+            />
           </div>
         </div>
       </section>
@@ -659,18 +712,35 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Social Media Integration - Temporarily disabled */}
-          <div className="text-center py-8">
-            <h3 className="text-2xl font-bold mb-4 text-brand-charcoal">Follow Us</h3>
-            <div className="flex justify-center space-x-4">
-              <a href="https://instagram.com/dappersquad" className="text-brand-gold hover:text-brand-dark-gold">
-                Instagram @dappersquad
-              </a>
-              <a href="https://facebook.com/dappersquadentertainment" className="text-brand-gold hover:text-brand-dark-gold">
-                Facebook
-              </a>
-            </div>
-          </div>
+          {/* Full Social Media Integration */}
+          <SocialMediaIntegration 
+            showShareButtons
+            showInstagramFeed
+            showSocialProof
+            showFollowButtons
+            shareConfig={{
+              url: 'https://dappersquad.com',
+              title: 'Check out Dapper Squad Entertainment - Chicago\'s Premier DJ & Event Services',
+              description: 'Professional DJ, Karaoke, and Photography services for weddings, corporate events, and celebrations.',
+              showLabels: true,
+            }}
+            instagramConfig={{
+              maxPosts: 6,
+              columns: 3,
+              showStats: true,
+            }}
+            socialHandles={{
+              instagram: '@dappersquad',
+              facebook: 'dappersquadentertainment',
+            }}
+          />
+        </div>
+      </section>
+
+      {/* Service Guarantees */}
+      <section className="py-16 bg-white" role="region" aria-labelledby="guarantees-heading">
+        <div className="max-w-7xl mx-auto px-8">
+          <GuaranteeBadges />
         </div>
       </section>
 

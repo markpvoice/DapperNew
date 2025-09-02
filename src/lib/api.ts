@@ -6,7 +6,9 @@ export interface CreateBookingData {
   eventStartTime?: string;
   eventEndTime?: string;
   eventType: string;
-  venue: string;
+  // Prefer venueName, keep venue for backward compatibility
+  venueName?: string;
+  venue?: string;
   venueAddress?: string;
   guestCount?: number;
   specialRequests?: string;
@@ -48,16 +50,29 @@ export async function createBooking(data: CreateBookingData): Promise<BookingRes
       body: JSON.stringify(data),
     });
 
+    const json = await response
+      .json()
+      .catch(() => ({} as any));
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      return {
+        success: false,
+        error:
+          (json && (json.error || json.message)) || `HTTP error! status: ${response.status}`,
+      };
     }
 
-    return await response.json();
+    // Normalize API response to expected shape
+    const bookingId = json?.booking?.bookingReference || json?.booking?.id || json?.bookingId;
+    return {
+      success: Boolean(json?.success ?? true),
+      bookingId,
+    };
   } catch (error) {
     console.error('Booking creation failed:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
     };
   }
 }

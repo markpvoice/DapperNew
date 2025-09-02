@@ -135,22 +135,22 @@ export async function POST(request: NextRequest) {
       expiresAt: new Date(tokens.accessTokenExpires).toISOString(),
     });
 
-    // Set access token cookie (short-lived, admin-scoped)
+    // Set access token cookie (short-lived, root-scoped so API calls receive it)
     response.cookies.set('access-token', tokens.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict', // Enhanced CSRF protection
       maxAge: 60 * 60, // 1 hour
-      path: '/admin', // Scope to admin routes only
+      path: '/', // Make available to both /admin pages and /api calls
     });
 
-    // Set refresh token cookie (long-lived, auth-scoped)
+    // Set refresh token cookie (long-lived, /api-scoped to limit surface area)
     response.cookies.set('refresh-token', tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict', // Enhanced CSRF protection
       maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: '/api/auth', // Scope to auth endpoints only
+      path: '/api', // Allow refresh on any /api/auth/* endpoint
     });
 
     // Keep legacy auth-token for backward compatibility (can be removed later)
