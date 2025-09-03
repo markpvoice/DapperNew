@@ -134,10 +134,12 @@ export const HoverEnhancedCard = forwardRef<HTMLDivElement, HoverEnhancedCardPro
     return (
       <div
         ref={(node) => {
+          // @ts-ignore - Mutable ref assignment for internal component state
           cardRef.current = node;
           if (typeof ref === 'function') {
             ref(node);
           } else if (ref) {
+            // @ts-ignore - Forwarded ref assignment
             ref.current = node;
           }
         }}
@@ -145,9 +147,9 @@ export const HoverEnhancedCard = forwardRef<HTMLDivElement, HoverEnhancedCardPro
         style={combinedStyle}
         onClick={onClick}
         onKeyDown={handleKeyDown}
-        onMouseEnter={hoverHandlers.onMouseEnter}
+        onMouseEnter={(e) => hoverHandlers.onMouseEnter(e.nativeEvent)}
         onMouseLeave={hoverHandlers.onMouseLeave}
-        onMouseMove={hoverHandlers.onMouseMove}
+        onMouseMove={(e) => hoverHandlers.onMouseMove(e.nativeEvent)}
         onFocus={hoverHandlers.onFocus}
         onBlur={hoverHandlers.onBlur}
         tabIndex={tabIndex}

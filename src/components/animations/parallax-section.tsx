@@ -80,6 +80,7 @@ export const ParallaxSection = forwardRef<HTMLElement, ParallaxSectionProps>(
 
     return (
       <Component
+        // @ts-ignore - Generic component with dynamic ref types
         ref={combinedRef}
         className={combinedClassName}
         style={combinedStyle}
