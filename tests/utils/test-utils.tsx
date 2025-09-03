@@ -185,19 +185,29 @@ export const mockLocalStorage = () => {
 
 // Mock window.matchMedia for responsive testing
 export const mockMatchMedia = (matches: boolean = false) => {
+  const mockMatchMediaFn = jest.fn().mockImplementation(query => ({
+    matches,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  }));
+
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
-    value: jest.fn().mockImplementation(query => ({
-      matches,
-      media: query,
-      onchange: null,
-      addListener: jest.fn(), // deprecated
-      removeListener: jest.fn(), // deprecated
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-      dispatchEvent: jest.fn(),
-    })),
+    value: mockMatchMediaFn,
   });
+
+  // Also ensure it exists on global object for jsdom
+  if (typeof global !== 'undefined') {
+    Object.defineProperty(global, 'matchMedia', {
+      writable: true,
+      value: mockMatchMediaFn,
+    });
+  }
 };
 
 // Mock intersection observer for viewport testing

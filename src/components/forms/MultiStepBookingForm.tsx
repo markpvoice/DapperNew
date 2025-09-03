@@ -9,7 +9,7 @@ import { ServiceCard } from '@/components/ui/service-card';
 import { CelebrationService } from '@/components/ui/celebration-service';
 import { InstantPricingCalculator } from '@/components/ui/instant-pricing-calculator';
 import { ServicePreviewModal } from '@/components/ui/service-preview-modal';
-import { ProgressCelebration } from '@/components/ui/progress-celebration';
+import { BookingCelebrations } from '@/components/ui/booking-celebrations';
 import { WhatHappensNext } from '@/components/ui/what-happens-next';
 import { MobileFormNavigation } from '@/components/ui/mobile-form-navigation';
 import { SwipeFormContainer } from '@/components/ui/swipe-form-container';
@@ -100,7 +100,6 @@ export function MultiStepBookingForm({ onComplete, onCancel, initialData }: Mult
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewServiceId, setPreviewServiceId] = useState<string | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [celebratingStep, setCelebratingStep] = useState<string>('');
   const [validationState, setValidationState] = useState<Record<string, 'success' | 'error' | null>>({});
   
   const { toast } = useToast();
@@ -301,7 +300,6 @@ END:VCALENDAR`;
         
         // Trigger celebration
         setShowCelebration(true);
-        setCelebratingStep(STEPS[currentStep]);
         
         // Dispatch step completion event for celebrations
         if (typeof window !== 'undefined') {
@@ -405,6 +403,9 @@ END:VCALENDAR`;
           isCompleted: true,
           bookingReference: result.bookingId
         });
+        
+        // Trigger success celebration
+        setShowCelebration(true);
 
         // Dispatch booking completion celebration
         if (typeof window !== 'undefined') {
@@ -1184,14 +1185,21 @@ END:VCALENDAR`;
         />
       )}
       
-      {/* Progress Celebration */}
-      <ProgressCelebration
-        show={showCelebration}
-        stepName={celebratingStep}
-        stepNumber={currentStep + 1}
+      {/* Booking Journey Celebrations */}
+      <BookingCelebrations
+        step={currentStep + 1}
         totalSteps={STEPS.length}
-        onComplete={() => setShowCelebration(false)}
-        playSound={true}
+        isVisible={showCelebration}
+        onComplete={(_type, _data) => {
+          setShowCelebration(false);
+        }}
+        celebrationType={
+          bookingState.isCompleted ? 'success' : 
+          (currentStep + 1) / STEPS.length >= 0.5 ? 'milestone' : 
+          'step-complete'
+        }
+        enableSounds={true}
+        enableHaptics={true}
       />
       
       {/* Original Celebration Service for backwards compatibility */}

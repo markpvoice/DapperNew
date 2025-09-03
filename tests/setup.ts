@@ -24,6 +24,26 @@ mockMatchMedia();
 mockIntersectionObserver();
 mockResizeObserver();
 
+// Ensure matchMedia exists globally for all components
+const mockMatchMediaGlobal = jest.fn((query) => ({
+  matches: false, // Default to desktop/no reduced motion
+  media: query,
+  onchange: null,
+  addListener: jest.fn(),
+  removeListener: jest.fn(),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  dispatchEvent: jest.fn(),
+}));
+
+// Apply to both window and global for comprehensive coverage
+if (typeof window !== 'undefined') {
+  window.matchMedia = mockMatchMediaGlobal;
+}
+if (typeof global !== 'undefined') {
+  (global as any).matchMedia = mockMatchMediaGlobal;
+}
+
 // Disable animations for consistent testing
 disableAnimations();
 
