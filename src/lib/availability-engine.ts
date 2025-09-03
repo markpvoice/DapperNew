@@ -163,7 +163,7 @@ export class ConflictResolver {
     _conflict: any,
     _userPreferences: UserPreferences = {}
   ): AutoResolveResult {
-    if (conflict.type === 'buffer-violation' && conflict.severity === 'minor') {
+    if (_conflict.type === 'buffer-violation' && _conflict.severity === 'minor') {
       return {
         success: true,
         newSlot: { start: '09:00', end: '11:00' },
@@ -197,12 +197,12 @@ export class RealTimeChecker {
   ): void {
     const { interval = 30000 } = options;
     
-    this.callbacks.set(date, callback);
+    this.callbacks.set(_date, _callback);
     
     this.intervalId = setInterval(() => {
       // Mock real-time check
-      callback({
-        date,
+      _callback({
+        date: _date,
         updated: true,
         timestamp: new Date().toISOString()
       });
@@ -227,6 +227,6 @@ export class RealTimeChecker {
 
   onUpdate(_callback: (_data: any) => void): void {
     // Mock WebSocket-like update handling
-    this.callbacks.set('global', callback);
+    this.callbacks.set('global', _callback);
   }
 }

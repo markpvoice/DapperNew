@@ -152,6 +152,13 @@ export function useAdvancedGestures(
 ) {
   const opts = useMemo(() => ({ ...DEFAULT_OPTIONS, ...options }), [options]);
   
+  // Create safe constants for velocity thresholds with fallbacks
+  const velocityThresholds = useMemo(() => ({
+    slow: opts.velocityThresholds?.slow ?? DEFAULT_OPTIONS.velocityThresholds.slow!,
+    medium: opts.velocityThresholds?.medium ?? DEFAULT_OPTIONS.velocityThresholds.medium!,
+    fast: opts.velocityThresholds?.fast ?? DEFAULT_OPTIONS.velocityThresholds.fast!
+  }), [opts.velocityThresholds]);
+  
   // Enhanced gesture state
   const [gestureState, setGestureState] = useState<AdvancedGestureState>({
     swipeState: {
@@ -197,8 +204,10 @@ export function useAdvancedGestures(
       return;
     }
     
-    const pattern = opts.hapticFeedback.patterns?.[type] || DEFAULT_OPTIONS.hapticFeedback.patterns[type];
-    navigator.vibrate(pattern);
+    const pattern = opts.hapticFeedback.patterns?.[type] || DEFAULT_OPTIONS.hapticFeedback.patterns?.[type];
+    if (pattern) {
+      navigator.vibrate(pattern);
+    }
   }, [opts.hapticFeedback]);
 
   // Velocity calculation utility
@@ -408,11 +417,11 @@ export function useAdvancedGestures(
       // Trigger swipe callback if threshold is met
       if (distance > opts.swipeThreshold) {
         // Determine haptic intensity based on velocity
-        if (velocity > opts.velocityThresholds.fast) {
+        if (velocity > velocityThresholds.fast) {
           triggerHapticFeedback('heavy');
-        } else if (velocity > opts.velocityThresholds.medium) {
+        } else if (velocity > velocityThresholds.medium) {
           triggerHapticFeedback('medium');
-        } else if (velocity > opts.velocityThresholds.slow) {
+        } else if (velocity > velocityThresholds.slow) {
           triggerHapticFeedback('light');
         }
         
@@ -453,7 +462,7 @@ export function useAdvancedGestures(
     }
 
     opts.onTouchMove(event);
-  }, [opts, updateGestureState, calculateVelocity, isEdgeSwipe, calculateDistance, calculateCenter, triggerHapticFeedback]);
+  }, [opts, updateGestureState, calculateVelocity, isEdgeSwipe, calculateDistance, calculateCenter, triggerHapticFeedback, velocityThresholds]);
 
   // Touch end handler
   const handleTouchEnd = useCallback((event: TouchEvent) => {
@@ -579,9 +588,9 @@ export function useAdvancedGestures(
     isMultiTouch: gestureState.touchState.isMultiTouch,
     
     // Velocity helpers
-    isSlowGesture: gestureState.swipeState.velocity > 0 && gestureState.swipeState.velocity <= opts.velocityThresholds.slow,
-    isMediumGesture: gestureState.swipeState.velocity > opts.velocityThresholds.slow && gestureState.swipeState.velocity <= opts.velocityThresholds.medium,
-    isFastGesture: gestureState.swipeState.velocity > opts.velocityThresholds.medium,
+    isSlowGesture: gestureState.swipeState.velocity > 0 && gestureState.swipeState.velocity <= velocityThresholds.slow,
+    isMediumGesture: gestureState.swipeState.velocity > velocityThresholds.slow && gestureState.swipeState.velocity <= velocityThresholds.medium,
+    isFastGesture: gestureState.swipeState.velocity > velocityThresholds.medium,
     
     // Gesture type helpers
     isHorizontalSwipe: ['left', 'right'].includes(gestureState.swipeState.direction || ''),

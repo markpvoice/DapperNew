@@ -23,6 +23,7 @@ interface NavTab {
   label: string;
   icon: string;
   href: string;
+  path: string; // Add path property to match NavigationTab interface
   badge?: number;
   isActive?: boolean;
   disabled?: boolean;

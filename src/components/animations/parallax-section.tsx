@@ -53,8 +53,8 @@ export const ParallaxSection = forwardRef<HTMLElement, ParallaxSectionProps>(
       
       if (typeof forwardedRef === 'function') {
         forwardedRef(node);
-      } else if (forwardedRef) {
-        forwardedRef.current = node;
+      } else if (forwardedRef && 'current' in forwardedRef) {
+        (forwardedRef as React.MutableRefObject<HTMLElement | null>).current = node;
       }
     };
 
@@ -78,20 +78,15 @@ export const ParallaxSection = forwardRef<HTMLElement, ParallaxSectionProps>(
       className,
     ].filter(Boolean).join(' ');
 
-    return (
-      <Component
-        // @ts-ignore - Generic component with dynamic ref types
-        ref={combinedRef}
-        className={combinedClassName}
-        style={combinedStyle}
-        data-parallax-speed={speed}
-        data-parallax-direction={direction}
-        data-in-view={isInView}
-        data-testid={dataTestId}
-      >
-        {children}
-      </Component>
-    );
+    return React.createElement(Component as any, {
+      ref: combinedRef,
+      className: combinedClassName,
+      style: combinedStyle,
+      'data-parallax-speed': speed,
+      'data-parallax-direction': direction,
+      'data-in-view': isInView,
+      'data-testid': dataTestId,
+    }, children);
   }
 );
 

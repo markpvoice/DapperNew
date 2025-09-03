@@ -134,13 +134,11 @@ export const HoverEnhancedCard = forwardRef<HTMLDivElement, HoverEnhancedCardPro
     return (
       <div
         ref={(node) => {
-          // @ts-ignore - Mutable ref assignment for internal component state
-          cardRef.current = node;
+          (cardRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
           if (typeof ref === 'function') {
             ref(node);
-          } else if (ref) {
-            // @ts-ignore - Forwarded ref assignment
-            ref.current = node;
+          } else if (ref && 'current' in ref) {
+            (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
           }
         }}
         className={combinedClassName}

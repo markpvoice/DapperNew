@@ -203,9 +203,9 @@ export class TimeSlotDragger {
   private listeners: Map<string, EventListener> = new Map();
 
   attachListeners(element: HTMLElement): void {
-    const mouseDown = (e: MouseEvent) => this.onDragStart(e);
-    const mouseMove = (e: MouseEvent) => this.onDrag(e);
-    const mouseUp = (e: MouseEvent) => this.onDragEnd(e);
+    const mouseDown = (e: Event) => this.onDragStart(e as MouseEvent);
+    const mouseMove = (e: Event) => this.onDrag(e as MouseEvent);
+    const mouseUp = (e: Event) => this.onDragEnd(e as MouseEvent);
 
     element.addEventListener('mousedown', mouseDown);
     document.addEventListener('mousemove', mouseMove);

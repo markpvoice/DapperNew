@@ -49,7 +49,7 @@ export function useAvailabilityEngine(
 ): UseAvailabilityEngineReturn {
   const {
     cacheTimeout = 5 * 60 * 1000, // 5 minutes default
-    _debounceDelay = 300,
+    debounceDelay: _debounceDelay = 300,
     enableRealTime = true
   } = options;
 
@@ -142,7 +142,7 @@ export function useAvailabilityEngine(
       if (subscribers) {
         subscribers.delete(_callback);
         if (subscribers.size === 0) {
-          subscriptionsRef.current.delete(date);
+          subscriptionsRef.current.delete(_date);
         }
       }
     };
