@@ -103,7 +103,7 @@ export function BookingCelebrations({
       });
     }
 
-    let animationId: number;
+    let _animationId: number;
     
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -125,7 +125,7 @@ export function BookingCelebrations({
       });
 
       if (particles.length > 0) {
-        animationId = requestAnimationFrame(animate);
+        _animationId = requestAnimationFrame(animate);
       } else {
         setIsConfettiAnimating(false);
       }

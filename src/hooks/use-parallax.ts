@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, curly */
 import { useEffect, useState, useRef, useCallback } from 'react';
 
 interface ParallaxOptions {

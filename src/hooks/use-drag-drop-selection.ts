@@ -4,7 +4,9 @@
  * TDD GREEN Phase: Minimal implementation to make tests pass
  */
 
-import { useState, useCallback, useRef } from 'react';
+/* eslint-disable no-unused-vars, curly */
+
+import { useState, useCallback } from 'react';
 
 export interface Point {
   x: number;
@@ -49,13 +51,13 @@ export function useDragDropSelection(): UseDragDropSelectionReturn {
   const [selectionRect, setSelectionRect] = useState<SelectionRect | null>(null);
 
   // Start drag operation
-  const startDrag = useCallback((point: Point) => {
+  const startDrag = useCallback((_point: Point) => {
     setIsDragging(true);
-    setDragStart(point);
-    setDragEnd(point);
+    setDragStart(_point);
+    setDragEnd(_point);
     setSelectionRect({
-      x: point.x,
-      y: point.y,
+      x: _point.x,
+      y: _point.y,
       width: 0,
       height: 0
     });

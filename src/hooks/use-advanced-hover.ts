@@ -179,7 +179,7 @@ export function useAdvancedHover(
       const newTransforms = calculateTransforms(mouseX, mouseY, rect, isHovered);
       setTransforms(newTransforms);
     });
-  }, [calculateTransforms, throttleMs]);
+  }, [calculateTransforms, throttleMs, isHovered]);
 
   // Mouse enter handler
   const handleMouseEnter = useCallback((event?: MouseEvent) => {

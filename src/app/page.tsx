@@ -151,9 +151,13 @@ export default function HomePage() {
     // Store the currently focused element for focus restoration
     focusReturnRef.current = document.activeElement as HTMLElement;
     
-    if (initialData) {
-      setBookingInitialData(initialData);
-    }
+    // Merge homepage selected services with any provided initial data
+    const mergedInitialData = {
+      services: selectedServices, // Include homepage service selections
+      ...initialData // Override with any specific initial data
+    };
+    
+    setBookingInitialData(mergedInitialData);
     setShowBookingForm(true);
   };
   
