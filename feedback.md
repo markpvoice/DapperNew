@@ -1,176 +1,88 @@
-# Dapper Squad Entertainment — Codebase, UX, and Test Review
-
-This document summarizes strengths and concrete recommendations across code quality, delightful UX, and testing (coverage and correctness). References include file paths and specific mismatches to accelerate fixes.
+# Codebase & Test Suite Review — Observations and Recommendations
 
 ## Executive Summary
-- Strong foundation: modern Next.js 14 + TypeScript, zod validation, Prisma data layer, Jest + Playwright, Tailwind, and security-forward Next headers/CSP.
-- Tests: good breadth on security headers, DB layer, UI components; global Jest setup is robust.
-- Recently addressed: availability API alignment (client now uses `month/year`), booking time field alignment (`eventStartTime`), added `data-testid="book-now-button"`, added success-screen testids (`booking-success`, `booking-reference`, confirmation blocks), and significantly improved booking modal a11y (focus trap, aria attributes, focus restore, aria-hidden background).
-- Remaining gaps: several E2E selectors still drift from the UI (mobile flow, service toggles, error/pricing testids), and missing tests for API route handlers and client API utilities.
+- Solid modern stack (Next.js 14, TS strict, Prisma, zod, Tailwind) with good security headers and useful docs.
+- Recent improvements: auth cookies scoped correctly, booking API time handling, per-step form navigation, tailored copy, and updated E2E/unit tests.
+- Remaining work: finish aligning E2E selectors, add a few focused API tests, and small UX/a11y polish items.
 
----
+## Recent Improvements (Notable)
+- Auth/login
+  - Access token cookie path set to `/`; refresh token to `/api` to ensure `/api/admin/*` authenticate after login.
+  - Demo hint corrected to `admin123!` (matches seed).
+- Booking flow
+  - POST `/api/bookings`: properly combines `eventDate` + `HH:MM` into Date; accepts `venueName`.
+  - Client `createBooking` surfaces server error messages and normalizes `bookingId`.
+  - Per-step navigation under each step; removed bottom-only nav friction.
+  - Celebration copy tailored by step (final: “Ready to submit!”).
+- Tests
+  - Booking E2E aligned with modal flow and service-card testids; analytics/unavailable-date paths skipped until implemented.
+  - Unit tests added: `bookings-post`, `bookings-get`, `rate-limiter`.
+  - Contact E2E adapted to validate the contact section/landmarks.
 
-## Highlights (What’s Working Well)
-- TypeScript: `strict` on, path aliases, modern targets (`tsconfig.json`).
-- Validation: Consistent zod schemas in API routes (e.g., `src/app/api/bookings/route.ts`).
-- DX/Quality: ESLint + Prettier + husky + lint-staged in `package.json`; clear docs.
-- Security: Strong, environment-aware headers/CSP in `next.config.js` and extensive tests in `tests/unit/security/*`.
-- UI Components: Thoughtful accessibility in gallery and animated components; `PhotoGallery` provides roles, keyboard navigation, and lazy loading.
-- Performance: Particle background honors `prefers-reduced-motion` and uses intersection observer for pause/resume.
+## API & Data Layer
+- Strengths
+  - Clear separation of API route validation via zod; Prisma operations consolidated in `src/lib/database.ts`.
+  - Rate limiter is db-backed with feature flag (`ENABLE_RATE_LIMIT`) and fail-open behavior.
+- Recommendations
+  - Add a couple of happy-path and edge-path tests for GET `/api/bookings/[id]` and PUT `/api/bookings/[id]` (status transitions and invalid IDs).
+  - Standardize date handling (UTC vs. local) when checking “future date” across client and server; current checks are sensible but document intended timezone.
+  - Consider idempotency keys (header or body) on booking POST to avoid duplicate submissions.
 
----
+## Authentication
+- Observations
+  - Cookie scoping corrected; verify route auto-refreshes tokens when needed.
+  - Admin dashboard relies on `/api/admin/*`; works post-fix.
+- Recommendations
+  - Add a tiny badge in admin header (e.g., “Signed in as …”) and simple logout to confirm state.
+  - Optional: add a guard to redirect unauthenticated users to `/admin/login` from admin pages.
 
-## Key Issues To Address First
-1) Resolved: API contract alignment
-   - Client availability now calls `/api/bookings/availability?month=&year=` and checks the specific date’s membership in results (see `src/lib/api.ts`). Server endpoint remains month/year (good).
-   - Client, types, and server now consistently use `eventStartTime`/`eventEndTime`.
+## Frontend UX & A11y
+- Observations
+  - Per-step nav greatly improves flow; success screen is clear and celebratory without being game-like.
+  - Booking form uses labels, aria-invalid, aria-describedby, and aria-live for error feedback.
+- Recommendations
+  - Optional: add a subtle “sticky” mini-nav on small screens for extremely long steps.
+  - Ensure focus management between steps (move focus to first invalid field on validation failure).
+  - Add a “Skip to content” link and confirm all landmark roles on the homepage.
 
-2) E2E tests and UI selectors: progress, with remaining drift
-   - Playwright opens the modal via `[data-testid="book-now-button"]` and asserts `[data-testid="booking-modal"]` — aligned with the UI.
-   - Success path is now aligned: UI exposes `[data-testid="booking-success"]`, `[data-testid="booking-reference"]`, `[data-testid="confirmed-name|date|services"]`, `[data-testid="next-steps"]`, `[data-testid="payment-info"]`, and `[data-testid="add-to-calendar"]`.
-   - Still mismatched expectations in tests:
-     - Mobile flow: tests expect `mobile-header`, `mobile-menu`, `mobile-book-now` and `/booking` navigation; homepage uses a modal and does not expose these testids.
-     - Service toggles: tests use `[data-testid="service-dj"]`/`service-photography`, while UI provides `[data-testid="service-card-dj"]` etc. (from `ServiceCard`).
-     - Error-state assertions: tests reference `[data-testid="booking-error"]` and `[data-testid="retry-button"]` that are not present; errors are inline/toast.
-     - Pricing signals: tests assert `dj-info`, `estimated-price`, `package-discount` which aren’t implemented as testids (there is a pricing summary without testid).
-   - Recommendation: update tests to match current UI testids/flow, or instrument the UI with the expected testids. Consider centralizing testid constants.
+## Testing Status
+- Unit
+  - New suites for `/api/bookings` POST/GET and rate limiter add good coverage of critical logic.
+  - Suggest adding tests for `/api/bookings/[id]` CRUD and small tests for `src/lib/api.ts` functions (success + error branches).
+- E2E (Playwright)
+  - Booking flow now matches modal-based UI and service-card selectors.
+  - Contact E2E reflects current content model (no form yet).
+  - Remaining: remove stale `mobile-*` and legacy selectors across suites; centralize testid constants to avoid drift.
+- CI
+  - Recommend a PR pipeline with: `typecheck`, `lint`, `jest --coverage`, and a light E2E smoke.
 
-3) Modal accessibility/focus management (largely addressed)
-   - `src/app/page.tsx` adds `role="dialog"`, `aria-modal`, `aria-labelledby`, background scroll lock, background `aria-hidden`, focus trap, and focus restoration. Nice work.
-   - Optional: consider Radix Dialog for long-term maintenance, but the current implementation is solid.
-
-4) Form UX and validation consistency
-   - Client/server schema drift (above) and no immediate inline validation for some fields in earlier steps.
-   - Recommendation: Share zod schemas (or a thin DTO layer) between client and server for parity; show inline validation with `aria-live="polite"` regions; add `inputmode`/`autocomplete` for email/phone/date fields.
-
----
-
-## Delightful UX Improvements
-- Navigation
-  - Add a “Skip to content” link for keyboard users.
-  - Mobile menu button: include `aria-expanded`, `aria-controls`, and focus management when opening/closing (`src/app/page.tsx`).
-
-- Home Hero and CTAs
-  - Consider a persistent mobile FAB (e.g., “Request Date”) that opens the booking modal; add `data-testid` for E2E stability.
-  - Use `next/link` for in-page anchors to leverage smooth scrolling only when supported; degrade gracefully.
-
-- Gallery
-  - Consider Next.js `next/image` where appropriate for grid thumbnails to leverage responsive sizing and native lazy loading. Current `<img>` is fine for simplicity, but `next/image` will improve CLS/LCP when configured.
-
-- Booking Modal
-  - You’ve added a clear review step and solid progression; consider a print/save option on confirmation and explicit “Saved” status for autosave. Intelligent time suggestions based on event type remain a nice-to-have.
-
-- Motion and Feedback
-  - Great use of `prefers-reduced-motion` in `ParticleBackground`. Extend this to other animations (ripple/glow/celebration) by checking the same preference before heavy effects.
-
----
-
-## Accessibility (A11y)
-- Modal focus trap and labelling as noted above.
-- Ensure error messages are announced via `aria-live` and inputs are linked with `aria-describedby` for errors.
-- Add `role="navigation"` landmarks (header/nav/footer) and ensure page-level `h1` is unique per route.
-- For icon-only buttons (e.g., close, menu), confirm accessible names are present and descriptive.
-
----
+## Security & Config
+- Observations
+  - Headers/CSP are solid and environment-aware; good coverage in `tests/unit/security/*`.
+- Recommendations
+  - Keep `.env.example` up to date (now includes `FROM_EMAIL`, `VERIFIED_EMAIL`, `ENABLE_RATE_LIMIT`). Consider uncommenting `TEST_DATABASE_URL` when adding DB-backed integration tests.
 
 ## Performance
-- Images
-  - Use `next/image` with properly set `sizes` for hero/gallery. Audit `public/images/*` to provide WebP/AVIF where available (Next already set to output these formats in `next.config.js`).
-- Code-splitting
-  - Consider dynamic imports for heavier admin components or animation-heavy modules, especially below-the-fold.
-- Third-party scripts
-  - Maintain the CSP discipline; load Stripe only where needed.
-
----
-
-## Code Quality & Architecture
-- API routes
-  - Normalize date handling to avoid timezone pitfalls. Compare at start-of-day UTC or local consistently before “must be in the future” checks (`src/app/api/bookings/route.ts`).
-  - Return 409 for “date unavailable” scenarios when applicable.
-  - Consider idempotency keys (header or body) to prevent duplicate bookings on retry.
-
-- Email
-  - Good defensive handling of Resend responses in `src/lib/email.ts`. Add `.env.example` keys for `FROM_EMAIL`, `VERIFIED_EMAIL`, and `ENABLE_RATE_LIMIT` for clarity.
-  - Sanitize or escape any user-provided strings interpolated into HTML; currently the templates are controlled but worth centralizing an escaping helper.
-
-- Rate Limiting
-  - Solid DB-backed rate limiter with fail-open. Add tests covering `ENABLE_RATE_LIMIT` modes (`true`, `log`, disabled) and the retry-after math.
-
----
-
-## Testing System Review
-
-### Jest (unit/integration)
-- Config
-  - `jest.config.js` is well-tuned (jsdom, moduleNameMapper, setup files). Coverage thresholds at 80% global are good.
-  - Suggest per-package thresholds where critical (e.g., API and validation modules at 90%+, UI can be 70–80%).
-
-- Setup
-  - `jest.setup.js` provides JSDOM polyfills and mocks. Be careful overriding globals like `Request`/`Response`; document this so contributors understand why these mocks exist.
-
-- Coverage Gaps (additions to consider)
-  - API route handlers: Add tests for `GET/POST` in `src/app/api/bookings/*` using `NextRequest`/`NextResponse` with mocked `db` and `email` modules. Cover:
-    - Valid/invalid payloads and query params
-    - Rate limit enforced/log-only/disabled modes
-    - Email failure paths (booking still succeeds)
-    - Timezone edge cases for “future date” validation
-  - Client API utilities (`src/lib/api.ts`): Unit tests mocking `fetch` via MSW or jest.fn to verify error handling and shape.
-  - Rate limiter (`src/lib/rate-limiter.ts`): Unit tests for attempt counting, reset timing, and error/fail-open behavior.
-
-### Playwright (E2E)
-- Config is comprehensive with multi-browser projects, HTML/JUnit/JSON reporters, and dev server boot.
-- Current status: opening the modal via `[data-testid="book-now-button"]` and asserting `[data-testid="booking-modal"]` is aligned with the UI.
-- Remaining gaps: success/confirmation testids (`booking-success`, `booking-reference`) and mobile flow expectations (`/booking`, `mobile-*`) don’t match the current homepage implementation.
-- Recommendations:
-  - Update selectors or instrument the UI with matching testids; keep a small shared testids module to prevent drift.
-  - Seed availability deterministically for unavailable-date scenarios.
-  - Keep admin auth setup optional/skipped in CI unless admin flows are under test.
-
-### CI, Stability, and Developer Feedback
-- Add CI stages: `typecheck`, `lint`, `jest --coverage`, and optionally a smoke Playwright job on PRs.
-- Enable a coverage summary output and surface in PR comments; optionally publish HTML coverage artifact.
-
----
-
-## Documentation & Environment
-- `.env.example`
-  - Updated: now includes `FROM_EMAIL`, `VERIFIED_EMAIL`, and `ENABLE_RATE_LIMIT` with helpful comments. Consider uncommenting `TEST_DATABASE_URL` when introducing DB-backed integration tests.
-
----
+- Observations
+  - Particle and celebration animations respect `prefers-reduced-motion`; IntersectionObserver usage is good.
+- Recommendations
+  - Consider `next/image` for gallery thumbnails with `sizes` for CLS/LCP wins.
+  - Lazy-load heavy admin widgets below-the-fold (charts, analytics) with `next/dynamic`.
 
 ## Quick Fix Checklist
-- [x] Standardize availability endpoint params (`month/year` in client and server).
-- [x] Align booking time field names: `eventStartTime` across client/types/server.
-- [x] Success confirmation testids aligned with E2E.
-- [x] Add modal focus trap + focus restore and aria labelling.
-- [x] Extend `.env.example` with email/rate-limit keys.
-- [ ] Sync remaining Playwright selectors (mobile flow, service toggles, error/pricing testids) or instrument UI to match.
-- [ ] Add API route tests for `bookings` GET/POST with success/error/rate-limit paths.
-- [ ] Add tests for `src/lib/api.ts` and `src/lib/rate-limiter.ts`.
-- [ ] Investigate using `next/image` for gallery thumbnails (with correct sizes).
+- [x] Align availability API client (`month/year`)
+- [x] Use `eventStartTime`/`eventEndTime` + combine with date in API
+- [x] Move per-step nav buttons under content
+- [x] Tailor celebration copy (final: “Ready to submit!”)
+- [x] Fix auth cookie scoping; correct demo credentials hint
+- [x] Add tests: bookings POST/GET, rate limiter; update booking E2E
+- [ ] Add tests: bookings by ID (GET/PUT) and `src/lib/api.ts`
+- [ ] Finish pruning stale E2E selectors; centralize testid constants
+- [ ] Consider `next/image` for galleries; lazy-load heavy admin widgets
+- [ ] Add admin auth guard + small signed-in badge (optional)
 
----
+## Nice-to-Haves
+- Add idempotency support on booking POST to prevent dupes on retries.
+- Add a “print/save” option on Review step and subtle autosave “Saved” confirmation.
+- Add a seeded Playwright fixture layer for deterministic unavailable-date scenarios.
 
-## Suggested Next Test Cases (Concrete)
-- API POST /api/bookings
-  - rejects past dates (timezone-stable), returns 400
-  - accepts valid payload and returns 201 with booking reference
-  - rate limit blocked with 429 + Retry-After when `ENABLE_RATE_LIMIT=true`
-  - emails fail but booking still returns 201 (logs error)
-
-- API GET /api/bookings/availability
-  - validates missing params -> 400
-  - validates out-of-range month/year -> 400
-  - returns list for a seeded month -> 200 with expected `availableDates`
-
-- Client API utils
-  - `createBooking` returns `{ success:false }` on network error
-  - `checkAvailability` constructs correct URL and parses response
-
-- Rate limiter
-  - allows N attempts within window; blocks N+1 with proper `retryAfter`
-  - `log` mode never blocks but reports `remaining: 0`
-
----
-
-If helpful, I can open a PR aligning the API contracts, fixing modal a11y, and adding the missing tests described here.

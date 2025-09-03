@@ -461,12 +461,12 @@ export class AdminDashboardHelpers {
     await this.page.setViewportSize({ width: 375, height: 667 });
     await this.page.waitForTimeout(TIMEOUTS.animationWait);
     
-    // Look for mobile-specific elements like hamburger menu
+    // Look for mobile-specific elements from actual components
     const mobileElements = [
       'button[aria-label="Menu"]',
-      '.hamburger-menu',
-      '[data-testid="mobile-menu"]',
-      'button:has-text("☰")'
+      '[data-testid="mobile-menu-button"]',
+      '#mobile-menu-button',
+      'button[class*="md:hidden"]'
     ];
 
     const hasMobileNav = await Promise.all(

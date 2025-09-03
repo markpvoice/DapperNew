@@ -29,8 +29,8 @@ This comprehensive E2E test suite covers admin dashboard navigation functionalit
   - "Back to Dashboard" links in sub-sections
 
 - **Mobile Responsive Navigation** (3 tests)
-  - Hamburger menu display and functionality
-  - Navigation functionality on mobile devices
+  - Mobile menu button display and functionality
+  - Navigation functionality on mobile devices  
   - Touch target requirements compliance
 
 - **URL Navigation & Direct Access** (2 tests)
@@ -126,7 +126,7 @@ const navigationTime = await navHelpers.measureNavigationPerformance('/admin/ana
 1. **Login → Dashboard → Calendar → Analytics**
 2. **Direct URL access to each admin section**
 3. **Browser back/forward navigation between sections**
-4. **Mobile navigation with hamburger menus**
+4. **Mobile navigation with responsive menu buttons**
 5. **Tab switching within dashboard**
 6. **Page refresh state persistence**
 7. **Authentication guard enforcement**
@@ -226,7 +226,7 @@ npx playwright show-report
 
 3. **Mobile Navigation Issues**
    - Verify responsive breakpoints in CSS
-   - Check hamburger menu implementation
+   - Check mobile menu button implementation
    - Validate touch target sizes (min 44px)
 
 4. **Element Not Found Errors**

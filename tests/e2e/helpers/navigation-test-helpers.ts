@@ -111,15 +111,13 @@ export class NavigationTestHelpers {
     await this.page.setViewportSize({ width: 375, height: 667 });
     await this.page.waitForTimeout(TIMEOUTS.animationWait);
 
-    // Look for mobile menu button with various selectors
+    // Look for mobile menu button with existing selectors from components
     const mobileMenuSelectors = [
       '[data-testid="mobile-menu-button"]',
       'button[aria-label="Menu"]',
       'button[aria-label="Open menu"]',
-      'button:has-text("☰")',
-      '.hamburger-menu',
       'button[class*="md:hidden"]', // Tailwind responsive classes
-      'nav button[type="button"]' // Generic nav button
+      '#mobile-menu-button' // From actual component
     ];
 
     let menuButtonFound = false;
@@ -164,8 +162,8 @@ export class NavigationTestHelpers {
       'text=Calendar', 
       'text=Analytics',
       'a[href*="/admin"]',
-      'nav[class*="mobile"]',
-      '.mobile-menu'
+      '[data-testid="mobile-navigation-menu"]', // From actual component
+      '#mobile-menu' // From actual component
     ];
 
     for (const selector of navSelectors) {

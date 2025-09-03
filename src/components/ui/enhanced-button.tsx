@@ -148,7 +148,8 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
     // Apply micro-interaction classes
     const microInteractionClasses = cn(
       rippleEffect && 'ripple-effect',
-      glowEffect && 'glow-effect'
+      glowEffect && 'glow-effect',
+      loading && 'loading'
     );
     
     // If asChild is true, pass through children directly without modification
