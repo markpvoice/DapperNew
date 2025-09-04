@@ -52,7 +52,8 @@
 - E2E (Playwright)
   - Booking flow now matches modal-based UI and service-card selectors.
   - Contact E2E reflects current content model (no form yet).
-  - Remaining: remove stale `mobile-*` and legacy selectors across suites; centralize testid constants to avoid drift.
+  - Helpers present under `tests/e2e/helpers` for navigation and auth — great start toward centralization.
+  - Remaining: finish removing stale `mobile-*` and legacy selectors across all suites; extract shared testid constants to helpers for consistency.
 - CI
   - Recommend a PR pipeline with: `typecheck`, `lint`, `jest --coverage`, and a light E2E smoke.
 
@@ -65,8 +66,9 @@
 ## Performance
 - Observations
   - Particle and celebration animations respect `prefers-reduced-motion`; IntersectionObserver usage is good.
+  - `next/image` already used in several components (service cards, optimized image, photo gallery lightbox).
 - Recommendations
-  - Consider `next/image` for gallery thumbnails with `sizes` for CLS/LCP wins.
+  - Switch gallery grid thumbnails from `<img>` to `next/image` with proper `sizes` and low‑quality placeholders to reduce CLS/LCP.
   - Lazy-load heavy admin widgets below-the-fold (charts, analytics) with `next/dynamic`.
 
 ## Quick Fix Checklist
@@ -85,4 +87,3 @@
 - Add idempotency support on booking POST to prevent dupes on retries.
 - Add a “print/save” option on Review step and subtle autosave “Saved” confirmation.
 - Add a seeded Playwright fixture layer for deterministic unavailable-date scenarios.
-
