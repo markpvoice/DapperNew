@@ -11,7 +11,7 @@ import { renderHook } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 // Import our implemented components
-import { useAdvancedGestures } from '@/hooks/useAdvancedGestures';
+import { useAdvancedGestures } from '@/hooks/use-advanced-gestures';
 import { PullToRefresh } from '@/components/mobile/pull-to-refresh';
 import { EnhancedMobileNav } from '@/components/mobile/enhanced-mobile-nav';
 

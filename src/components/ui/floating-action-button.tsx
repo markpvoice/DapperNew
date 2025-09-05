@@ -12,7 +12,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useMobileOptimizations } from '@/hooks/useMobileOptimizations';
+import { useMobileOptimizations } from '@/hooks/use-mobile-optimizations';
 
 interface FABAction {
   id: string;

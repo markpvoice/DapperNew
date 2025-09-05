@@ -1,133 +1,265 @@
 /**
- * useTouchGestures Hook
- * React hook for managing touch gestures and mobile interactions
- * TDD GREEN Phase: Minimal implementation to make tests pass
+ * @fileoverview Touch Gestures Hook
+ * 
+ * Custom React hook for handling touch gestures:
+ * - Swipe detection (left, right, up, down)
+ * - Pinch-to-zoom gestures
+ * - Touch event handling with proper cleanup
+ * - Performance optimizations
  */
 
-import { useState, useCallback } from 'react';
+import { useRef, useCallback, useState, useEffect, useMemo } from 'react';
 
-export interface TouchPoint {
-  id: number;
+interface TouchPoint {
   x: number;
   y: number;
-  startTime: number;
-  currentTime?: number;
+  timestamp: number;
 }
 
-export type GestureType = 'tap' | 'long-press' | 'swipe' | 'drag' | null;
-
-export interface UseTouchGesturesReturn {
-  isTouch: boolean;
-  touches: TouchPoint[];
-  gestureType: GestureType;
-  startTouch: (_touch: TouchPoint) => void;
-  updateTouch: (_touch: Partial<TouchPoint> & { id: number }) => void;
-  endTouch: (_touchId: number) => void;
-  detectGesture: (_pattern: { duration: number; distance: number }) => GestureType;
-  clearGesture: () => void;
+interface GestureState {
+  isSwipping: boolean;
+  swipeDirection: 'left' | 'right' | 'up' | 'down' | null;
+  swipeDistance: number;
+  swipeVelocity: number;
+  isPinching: boolean;
+  pinchScale: number;
+  pinchCenter: { x: number; y: number } | null;
 }
 
-/**
- * Hook for managing touch gestures and recognition
- */
-export function useTouchGestures(): UseTouchGesturesReturn {
-  const [isTouch, setIsTouch] = useState(false);
-  const [touches, setTouches] = useState<TouchPoint[]>([]);
-  const [gestureType, setGestureType] = useState<GestureType>(null);
+interface TouchGestureOptions {
+  onSwipe?: (_direction: string, _distance: number, _velocity: number) => void;
+  onPinch?: (_scale: number, _center: { x: number; y: number }) => void;
+  onTouchStart?: (_event: TouchEvent) => void;
+  onTouchMove?: (_event: TouchEvent) => void;
+  onTouchEnd?: (_event: TouchEvent) => void;
+  swipeThreshold?: number;
+  pinchThreshold?: number;
+  enableSwipe?: boolean;
+  enablePinch?: boolean;
+  preventDefaultScroll?: boolean;
+}
 
-  // Start a new touch
-  const startTouch = useCallback((touch: TouchPoint) => {
-    setIsTouch(true);
-    setTouches(current => {
-      // Remove existing touch with same ID and add new one
-      const filtered = current.filter(t => t.id !== touch.id);
-      return [...filtered, touch];
-    });
+const DEFAULT_OPTIONS: Required<TouchGestureOptions> = {
+  onSwipe: () => {},
+  onPinch: () => {},
+  onTouchStart: () => {},
+  onTouchMove: () => {},
+  onTouchEnd: () => {},
+  swipeThreshold: 50,
+  pinchThreshold: 1.1,
+  enableSwipe: true,
+  enablePinch: true,
+  preventDefaultScroll: false
+};
 
-    // Auto-detect gesture type based on initial touch
-    setGestureType('tap'); // Default assumption
+export function useTouchGestures(
+  elementRef: React.RefObject<HTMLElement>,
+  options: TouchGestureOptions = {}
+) {
+  const opts = useMemo(() => ({ ...DEFAULT_OPTIONS, ...options }), [options]);
+  
+  const [gestureState, setGestureState] = useState<GestureState>({
+    isSwipping: false,
+    swipeDirection: null,
+    swipeDistance: 0,
+    swipeVelocity: 0,
+    isPinching: false,
+    pinchScale: 1,
+    pinchCenter: null
+  });
+
+  const touchStartRef = useRef<TouchPoint | null>(null);
+  const initialPinchDistanceRef = useRef<number>(0);
+  const lastMoveTimeRef = useRef<number>(0);
+  const rafIdRef = useRef<number | null>(null);
+
+  // Calculate distance between two points
+  const calculateDistance = useCallback((touch1: Touch, touch2: Touch) => {
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
   }, []);
 
-  // Update existing touch
-  const updateTouch = useCallback((touchUpdate: Partial<TouchPoint> & { id: number }) => {
-    setTouches(current => 
-      current.map(touch => 
-        touch.id === touchUpdate.id 
-          ? { ...touch, ...touchUpdate }
-          : touch
-      )
-    );
+  // Calculate center point between two touches
+  const calculateCenter = useCallback((touch1: Touch, touch2: Touch) => ({
+    x: (touch1.clientX + touch2.clientX) / 2,
+    y: (touch1.clientY + touch2.clientY) / 2
+  }), []);
 
-    // Update gesture type based on touch movement
-    const touch = touches.find(t => t.id === touchUpdate.id);
-    if (touch && touchUpdate.x && touchUpdate.y) {
-      const distance = Math.sqrt(
-        Math.pow(touchUpdate.x - touch.x, 2) + 
-        Math.pow(touchUpdate.y - touch.y, 2)
-      );
+  // Throttled state update for performance
+  const updateGestureState = useCallback((newState: Partial<GestureState>) => {
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+    }
+    
+    rafIdRef.current = requestAnimationFrame(() => {
+      setGestureState(prev => ({ ...prev, ...newState }));
+    });
+  }, []);
+
+  const handleTouchStart = useCallback((event: TouchEvent) => {
+    const touch = event.touches[0];
+    const now = Date.now();
+    
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      timestamp: now
+    };
+
+    // Handle pinch gesture initialization
+    if (opts.enablePinch && event.touches.length === 2) {
+      const touch1 = event.touches[0];
+      const touch2 = event.touches[1];
+      initialPinchDistanceRef.current = calculateDistance(touch1, touch2);
       
-      const duration = (touchUpdate.currentTime || Date.now()) - touch.startTime;
+      updateGestureState({
+        isPinching: true,
+        pinchCenter: calculateCenter(touch1, touch2),
+        pinchScale: 1
+      });
+    }
+
+    if (opts.preventDefaultScroll) {
+      event.preventDefault();
+    }
+
+    opts.onTouchStart(event);
+  }, [opts, calculateDistance, calculateCenter, updateGestureState]);
+
+  const handleTouchMove = useCallback((event: TouchEvent) => {
+    if (!touchStartRef.current) {
+      return;
+    }
+
+    const now = Date.now();
+    const touch = event.touches[0];
+    const startTouch = touchStartRef.current;
+
+    // Handle swipe gestures
+    if (opts.enableSwipe && event.touches.length === 1) {
+      const deltaX = touch.clientX - startTouch.x;
+      const deltaY = touch.clientY - startTouch.y;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
       
-      if (distance > 50) {
-        setGestureType('drag');
-      } else if (duration > 800) {
-        setGestureType('long-press');
+      let direction: 'left' | 'right' | 'up' | 'down' | null = null;
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        direction = deltaX > 0 ? 'right' : 'left';
+      } else {
+        direction = deltaY > 0 ? 'down' : 'up';
+      }
+
+      const timeDiff = now - startTouch.timestamp;
+      const velocity = timeDiff > 0 ? distance / timeDiff : 0;
+
+      updateGestureState({
+        isSwipping: distance > 10,
+        swipeDirection: direction,
+        swipeDistance: distance,
+        swipeVelocity: velocity
+      });
+
+      // Trigger swipe callback if threshold is met
+      if (distance > opts.swipeThreshold) {
+        opts.onSwipe(direction, distance, velocity);
       }
     }
-  }, [touches]);
 
-  // End a touch
-  const endTouch = useCallback((touchId: number) => {
-    setTouches(current => {
-      const filtered = current.filter(t => t.id !== touchId);
-      
-      // If no touches remaining, clear touch state
-      if (filtered.length === 0) {
-        setIsTouch(false);
+    // Handle pinch gestures
+    if (opts.enablePinch && event.touches.length === 2 && initialPinchDistanceRef.current > 0) {
+      const touch1 = event.touches[0];
+      const touch2 = event.touches[1];
+      const currentDistance = calculateDistance(touch1, touch2);
+      const scale = currentDistance / initialPinchDistanceRef.current;
+      const center = calculateCenter(touch1, touch2);
+
+      updateGestureState({
+        isPinching: true,
+        pinchScale: scale,
+        pinchCenter: center
+      });
+
+      // Trigger pinch callback if threshold is met
+      if (Math.abs(scale - 1) > (opts.pinchThreshold - 1)) {
+        opts.onPinch(scale, center);
       }
-      
-      return filtered;
+    }
+
+    lastMoveTimeRef.current = now;
+
+    if (opts.preventDefaultScroll) {
+      event.preventDefault();
+    }
+
+    opts.onTouchMove(event);
+  }, [opts, calculateDistance, calculateCenter, updateGestureState]);
+
+  const handleTouchEnd = useCallback((event: TouchEvent) => {
+    // Reset gesture state
+    updateGestureState({
+      isSwipping: false,
+      swipeDirection: null,
+      swipeDistance: 0,
+      swipeVelocity: 0,
+      isPinching: false,
+      pinchScale: 1,
+      pinchCenter: null
     });
-  }, []);
 
-  // Detect gesture type from pattern
-  const detectGesture = useCallback((pattern: { duration: number; distance: number }): GestureType => {
-    const { duration, distance } = pattern;
+    touchStartRef.current = null;
+    initialPinchDistanceRef.current = 0;
 
-    if (duration < 200 && distance < 10) {
-      setGestureType('tap');
-      return 'tap';
-    }
-    
-    if (duration > 800 && distance < 10) {
-      setGestureType('long-press');
-      return 'long-press';
-    }
-    
-    if (distance > 50) {
-      setGestureType('swipe');
-      return 'swipe';
-    }
-    
-    setGestureType('drag');
-    return 'drag';
-  }, []);
+    opts.onTouchEnd(event);
+  }, [opts, updateGestureState]);
 
-  // Clear current gesture
-  const clearGesture = useCallback(() => {
-    setGestureType(null);
-    setTouches([]);
-    setIsTouch(false);
-  }, []);
+  // Reset gesture state manually
+  const resetGesture = useCallback(() => {
+    updateGestureState({
+      isSwipping: false,
+      swipeDirection: null,
+      swipeDistance: 0,
+      swipeVelocity: 0,
+      isPinching: false,
+      pinchScale: 1,
+      pinchCenter: null
+    });
+    
+    touchStartRef.current = null;
+    initialPinchDistanceRef.current = 0;
+  }, [updateGestureState]);
+
+  // Setup event listeners
+  useEffect(() => {
+    const element = elementRef.current;
+    if (!element) {
+      return;
+    }
+
+    // Add event listeners with passive: false for preventDefault support
+    element.addEventListener('touchstart', handleTouchStart, { 
+      passive: !opts.preventDefaultScroll 
+    });
+    element.addEventListener('touchmove', handleTouchMove, { 
+      passive: !opts.preventDefaultScroll 
+    });
+    element.addEventListener('touchend', handleTouchEnd, { passive: true });
+    element.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+
+    return () => {
+      element.removeEventListener('touchstart', handleTouchStart);
+      element.removeEventListener('touchmove', handleTouchMove);
+      element.removeEventListener('touchend', handleTouchEnd);
+      element.removeEventListener('touchcancel', handleTouchEnd);
+      
+      // Cancel any pending animation frame
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+    };
+  }, [elementRef, handleTouchStart, handleTouchMove, handleTouchEnd, opts.preventDefaultScroll]);
 
   return {
-    isTouch,
-    touches,
-    gestureType,
-    startTouch,
-    updateTouch,
-    endTouch,
-    detectGesture,
-    clearGesture
+    ...gestureState,
+    resetGesture
   };
 }

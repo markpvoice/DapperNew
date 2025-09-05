@@ -13,7 +13,7 @@
 'use client';
 
 import React, { useRef, useCallback, useState, useEffect } from 'react';
-import { useAdvancedGestures } from '@/hooks/useAdvancedGestures';
+import { useAdvancedGestures } from '@/hooks/use-advanced-gestures';
 import { useMobileNavigation } from '@/hooks/useMobileNavigation';
 import { MobileDrawer } from '@/components/ui/mobile-drawer';
 import Link from 'next/link';

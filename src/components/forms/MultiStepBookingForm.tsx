@@ -196,6 +196,45 @@ END:VCALENDAR`;
     setFormData(prev => ({ ...prev, ...updates }));
   }, []);
 
+  // New function to check if current step is valid without setting errors
+  const isStepValid = useCallback((step: number): boolean => {
+    switch (step) {
+      case 0: // Service selection
+        return formData.services.length > 0;
+      case 1: // Date & Time
+        if (!formData.eventDate || !formData.eventStartTime) {
+          return false;
+        }
+        // Check if date is in the future
+        const selectedDate = new Date(formData.eventDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return selectedDate >= today;
+      case 2: // Event Details
+        return !!(formData.eventType && formData.venue);
+      case 3: // Contact Information
+        if (!formData.clientName || formData.clientName.trim().length < 2) {
+          return false;
+        }
+        if (!formData.clientEmail) {
+          return false;
+        }
+        // Enhanced email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.clientEmail)) {
+          return false;
+        }
+        if (!formData.clientPhone) {
+          return false;
+        }
+        // Enhanced phone validation
+        const phoneDigits = formData.clientPhone.replace(/\D/g, '');
+        return phoneDigits.length >= 10;
+      default:
+        return false;
+    }
+  }, [formData]);
+
   const validateStep = useCallback((step: number): boolean => {
     const newErrors: Record<string, string> = {};
     const newValidationState: Record<string, 'success' | 'error' | null> = { ...validationState };
@@ -1138,7 +1177,7 @@ END:VCALENDAR`;
             totalSteps={STEPS.length}
             onSwipeNext={handleNext}
             onSwipePrevious={handleBack}
-            canSwipeNext={Object.keys(errors).length === 0}
+            canSwipeNext={isStepValid(currentStep)}
             canSwipePrevious={currentStep > 0}
             disabled={bookingState.isCompleted || bookingState.isSubmitting}
           >
@@ -1163,7 +1202,7 @@ END:VCALENDAR`;
         <MobileFormNavigation
           currentStep={currentStep}
           totalSteps={STEPS.length}
-          canGoNext={Object.keys(errors).length === 0}
+          canGoNext={isStepValid(currentStep)}
           canGoBack={currentStep > 0}
           isSubmitting={bookingState.isSubmitting}
           onNext={currentStep === STEPS.length - 1 ? handleSubmit : handleNext}

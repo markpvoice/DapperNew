@@ -11,8 +11,8 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { useTouchGestures } from '@/hooks/useTouchGestures';
-import { useMobileOptimizations } from '@/hooks/useMobileOptimizations';
+import { useTouchGestures } from '@/hooks/use-touch-gestures';
+import { useMobileOptimizations } from '@/hooks/use-mobile-optimizations';
 
 interface Booking {
   id: string;

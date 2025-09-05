@@ -12,8 +12,8 @@
 'use client';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { useTouchGestures } from '@/hooks/useTouchGestures';
-import { useMobileOptimizations } from '@/hooks/useMobileOptimizations';
+import { useTouchGestures } from '@/hooks/use-touch-gestures';
+import { useMobileOptimizations } from '@/hooks/use-mobile-optimizations';
 import Link from 'next/link';
 
 interface DrawerItem {

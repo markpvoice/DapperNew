@@ -12,7 +12,7 @@
 'use client';
 
 import React, { useRef, useCallback, useState, useEffect } from 'react';
-import { useAdvancedGestures } from '@/hooks/useAdvancedGestures';
+import { useAdvancedGestures } from '@/hooks/use-advanced-gestures';
 
 interface PullToRefreshProps {
   children: React.ReactNode;
