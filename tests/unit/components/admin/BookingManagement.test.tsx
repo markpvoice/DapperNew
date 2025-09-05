@@ -64,12 +64,12 @@ const mockUseBookings = {
   pageSize: 10,
 };
 
-jest.mock('@/hooks/useBookings', () => ({
+jest.mock('@/hooks/use-bookings', () => ({
   useBookings: jest.fn(() => mockUseBookings),
 }));
 
 // Type the mock properly
-const mockUseBookingsHook = jest.mocked(require('@/hooks/useBookings').useBookings);
+const mockUseBookingsHook = jest.mocked(require('@/hooks/use-bookings').useBookings);
 
 describe('BookingManagement Component', () => {
   beforeEach(() => {

@@ -6,7 +6,7 @@
  */
 
 import { renderHook, waitFor } from '@testing-library/react';
-import { useDashboardData } from '@/hooks/useDashboardData';
+import { useDashboardData } from '@/hooks/use-dashboard-data';
 
 // Mock the API calls
 global.fetch = jest.fn();

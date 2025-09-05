@@ -9,7 +9,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useCalendarManagement } from '@/hooks/useCalendarManagement';
+import { useCalendarManagement } from '@/hooks/use-calendar-management';
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',

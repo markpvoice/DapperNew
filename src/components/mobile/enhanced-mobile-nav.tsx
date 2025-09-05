@@ -14,7 +14,7 @@
 
 import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { useAdvancedGestures } from '@/hooks/use-advanced-gestures';
-import { useMobileNavigation } from '@/hooks/useMobileNavigation';
+import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { MobileDrawer } from '@/components/ui/mobile-drawer';
 import Link from 'next/link';
 

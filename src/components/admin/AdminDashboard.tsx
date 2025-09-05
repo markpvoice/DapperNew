@@ -8,8 +8,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useDashboardData } from '@/hooks/useDashboardData';
+import { useAuth } from '@/hooks/use-auth';
+import { useDashboardData } from '@/hooks/use-dashboard-data';
 import { BookingManagement } from './BookingManagement';
 
 interface AdminDashboardProps {

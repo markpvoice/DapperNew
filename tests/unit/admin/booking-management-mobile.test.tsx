@@ -43,7 +43,7 @@ const mockBookings = [
   }
 ];
 
-jest.mock('@/hooks/useBookings', () => ({
+jest.mock('@/hooks/use-bookings', () => ({
   useBookings: () => ({
     bookings: mockBookings,
     loading: false,

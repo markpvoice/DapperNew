@@ -719,7 +719,7 @@ END:VCALENDAR`;
                     w-full px-3 border border-gray-300 rounded-md 
                     focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold 
                     text-base sm:text-sm
-                    ${getMobileClasses({ touchTarget: true })}
+                    ${getMobileClasses('min-h-[2.75rem] touch-manipulation')}
                   `}
                   style={{ 
                     minHeight: isMobile ? '48px' : 'auto',
@@ -970,13 +970,13 @@ END:VCALENDAR`;
                 onChange={(e) => updateFormData({ clientEmail: e.target.value })}
                 placeholder="your.email@example.com"
                 autoComplete="email"
-                {...getMobileInputProps('email')}
+                {...getMobileInputProps()}
                 aria-describedby={errors.clientEmail ? 'clientEmail-error' : undefined}
                 aria-invalid={errors.clientEmail ? 'true' : 'false'}
                 className={`
                   w-full px-3 py-2 border border-gray-300 rounded-md 
                   focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold
-                  ${getMobileClasses({ touchTarget: true })}
+                  ${getMobileClasses('min-h-[2.75rem] touch-manipulation')}
                 `}
                 style={{ 
                   minHeight: isMobile ? '48px' : 'auto',
@@ -1002,13 +1002,13 @@ END:VCALENDAR`;
                 onChange={(e) => updateFormData({ clientPhone: e.target.value })}
                 placeholder="(555) 123-4567"
                 autoComplete="tel"
-                {...getMobileInputProps('tel')}
+                {...getMobileInputProps()}
                 aria-describedby={errors.clientPhone ? 'clientPhone-error' : undefined}
                 aria-invalid={errors.clientPhone ? 'true' : 'false'}
                 className={`
                   w-full px-3 py-2 border border-gray-300 rounded-md 
                   focus:ring-4 focus:ring-brand-gold focus:ring-opacity-30 focus:border-brand-gold
-                  ${getMobileClasses({ touchTarget: true })}
+                  ${getMobileClasses('min-h-[2.75rem] touch-manipulation')}
                 `}
                 style={{ 
                   minHeight: isMobile ? '48px' : 'auto',
@@ -1163,7 +1163,7 @@ END:VCALENDAR`;
             steps={STEPS}
             currentStep={currentStep}
             completedSteps={completedSteps}
-            className={getMobileClasses({ touchTarget: true })}
+            className={getMobileClasses('min-h-[2.75rem] touch-manipulation')}
           />
         </div>
       )}

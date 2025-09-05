@@ -9,7 +9,7 @@
  * - Performance optimizations for mobile
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface TouchCapabilities {
   hasTouch: boolean;
@@ -34,8 +34,23 @@ interface DeviceInfo {
   devicePixelRatio: number;
 }
 
+export interface TouchGesture {
+  type: 'swipe' | 'tap' | 'longpress' | 'pinch';
+  direction?: 'left' | 'right' | 'up' | 'down';
+  velocity?: number;
+  distance?: number;
+  scale?: number;
+}
+
 interface MobileOptimizations {
-  // Device detection
+  // Direct access properties (for component compatibility)
+  isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
+  isTouch: boolean;
+  hasReducedMotion: boolean;
+  
+  // Device detection (nested objects for advanced use)
   deviceInfo: DeviceInfo;
   touchCapabilities: TouchCapabilities;
   viewport: ViewportInfo;
@@ -47,10 +62,20 @@ interface MobileOptimizations {
   shouldUseNativeScrolling: () => boolean;
   supportsHapticFeedback: () => boolean;
   
-  // Layout helpers
+  // Layout and UX helpers
   getTouchTargetSize: (_priority: 'low' | 'medium' | 'high') => number;
   getModalSize: () => { width: string; height: string };
   getDrawerWidth: () => number;
+  
+  // Component helper methods
+  getMobileClasses: (_baseClasses?: string) => string;
+  getMobileInputProps: () => React.InputHTMLAttributes<HTMLInputElement>;
+  triggerHapticFeedback: (_pattern?: 'light' | 'medium' | 'heavy') => void;
+  optimizeStepNavigation: (_currentStep: number, _totalSteps: number) => { showProgress: boolean; compactMode: boolean; showStepNumbers: boolean; useHorizontalLayout: boolean };
+  
+  // Touch event handlers
+  handleTouchStart: (_event: TouchEvent) => void;
+  handleTouchEnd: (_event: TouchEvent) => void;
 }
 
 const BREAKPOINTS = {
@@ -252,6 +277,95 @@ export function useMobileOptimizations(): MobileOptimizations {
     return 280;
   }, [viewport, deviceInfo]);
 
+  // Check reduced motion preference
+  const hasReducedMotion = useCallback((): boolean => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }, []);
+
+  // Generate mobile-optimized CSS classes
+  const getMobileClasses = useCallback((_baseClasses: string = ''): string => {
+    const { isMobile } = deviceInfo;
+    const { hasTouch } = touchCapabilities;
+    
+    let mobileClasses = baseClasses;
+    
+    if (isMobile) {
+      mobileClasses += ' mobile-optimized';
+    }
+    
+    if (hasTouch) {
+      mobileClasses += ' touch-optimized min-h-[44px] min-w-[44px]';
+    }
+    
+    return mobileClasses.trim();
+  }, [deviceInfo, touchCapabilities]);
+
+  // Generate mobile input properties
+  const getMobileInputProps = useCallback((): React.InputHTMLAttributes<HTMLInputElement> => {
+    const { isMobile, isIOS } = deviceInfo;
+    
+    if (!isMobile) {
+      return {};
+    }
+    
+    return {
+      inputMode: 'text' as const,
+      autoComplete: 'off',
+      autoCapitalize: isIOS ? 'words' : 'none',
+      autoCorrect: isIOS ? 'on' : 'off',
+    };
+  }, [deviceInfo]);
+
+  // Trigger haptic feedback
+  const triggerHapticFeedback = useCallback((_pattern: 'light' | 'medium' | 'heavy' = 'light') => {
+    if (typeof navigator === 'undefined' || !navigator.vibrate) {
+      return;
+    }
+    
+    const vibrationPatterns = {
+      light: [10],
+      medium: [20],
+      heavy: [50]
+    };
+    
+    navigator.vibrate(vibrationPatterns[pattern]);
+  }, []);
+
+  // Optimize step navigation for mobile
+  const optimizeStepNavigation = useCallback((currentStep: number, totalSteps: number) => {
+    const { isMobile } = deviceInfo;
+    const { width } = viewport;
+    
+    return {
+      showProgress: true,
+      compactMode: isMobile && width < 380,
+      showStepNumbers: !isMobile || totalSteps <= 5,
+      useHorizontalLayout: !isMobile && width > 768
+    };
+  }, [deviceInfo, viewport]);
+
+  // Touch event handlers (basic implementations)
+  const handleTouchStart = useCallback((event: TouchEvent) => {
+    // Basic touch start handling - can be extended per component needs
+    const touch = event.touches[0];
+    if (touch && event.currentTarget && 'setAttribute' in event.currentTarget) {
+      // Store initial touch position for gesture detection
+      (event.currentTarget as HTMLElement).setAttribute('data-touch-start-x', touch.clientX.toString());
+      (event.currentTarget as HTMLElement).setAttribute('data-touch-start-y', touch.clientY.toString());
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback((event: TouchEvent) => {
+    // Basic touch end handling - can be extended per component needs
+    if (event.currentTarget && 'removeAttribute' in event.currentTarget) {
+      (event.currentTarget as HTMLElement).removeAttribute('data-touch-start-x');
+      (event.currentTarget as HTMLElement).removeAttribute('data-touch-start-y');
+    }
+  }, []);
+
   // Set up event listeners for device changes
   useEffect(() => {
     detectDeviceCapabilities();
@@ -294,16 +408,38 @@ export function useMobileOptimizations(): MobileOptimizations {
   }, [detectDeviceCapabilities]);
 
   return {
+    // Direct access properties (for component compatibility)
+    isMobile: deviceInfo.isMobile,
+    isTablet: deviceInfo.isTablet,
+    isDesktop: deviceInfo.isDesktop,
+    isTouch: touchCapabilities.hasTouch,
+    hasReducedMotion: hasReducedMotion(),
+    
+    // Device detection (nested objects for advanced use)
     deviceInfo,
     touchCapabilities,
     viewport,
+    
+    // Optimization functions
     optimizeForDevice,
     getOptimalColumns,
     getOptimalSpacing,
     shouldUseNativeScrolling,
     supportsHapticFeedback,
+    
+    // Layout and UX helpers
     getTouchTargetSize,
     getModalSize,
-    getDrawerWidth
+    getDrawerWidth,
+    
+    // Component helper methods
+    getMobileClasses,
+    getMobileInputProps,
+    triggerHapticFeedback,
+    optimizeStepNavigation,
+    
+    // Touch event handlers
+    handleTouchStart,
+    handleTouchEnd
   };
 }

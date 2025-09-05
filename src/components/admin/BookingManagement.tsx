@@ -8,7 +8,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { useBookings } from '@/hooks/useBookings';
+import { useBookings } from '@/hooks/use-bookings';
 
 // Hook to detect mobile viewport
 function useIsMobile() {

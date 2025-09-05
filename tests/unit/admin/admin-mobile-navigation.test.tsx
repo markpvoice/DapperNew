@@ -11,7 +11,7 @@ import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { CalendarManagement } from '@/components/admin/CalendarManagement';
 
 // Mock authentication
-jest.mock('@/hooks/useAuth', () => ({
+jest.mock('@/hooks/use-auth', () => ({
   useAuth: () => ({
     user: {
       id: '1',
@@ -25,7 +25,7 @@ jest.mock('@/hooks/useAuth', () => ({
 }));
 
 // Mock dashboard data
-jest.mock('@/hooks/useDashboardData', () => ({
+jest.mock('@/hooks/use-dashboard-data', () => ({
   useDashboardData: () => ({
     stats: {
       totalBookings: 25,
@@ -49,7 +49,7 @@ jest.mock('@/hooks/useDashboardData', () => ({
 }));
 
 // Mock calendar management hook
-jest.mock('@/hooks/useCalendarManagement', () => ({
+jest.mock('@/hooks/use-calendar-management', () => ({
   useCalendarManagement: () => ({
     calendarData: {
       dates: [],

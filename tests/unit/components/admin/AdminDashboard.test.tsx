@@ -21,7 +21,7 @@ const mockAuthData = {
   error: null,
 };
 
-jest.mock('@/hooks/useAuth', () => ({
+jest.mock('@/hooks/use-auth', () => ({
   useAuth: () => mockAuthData,
 }));
 
@@ -66,7 +66,7 @@ const mockDashboardData = {
   refresh: jest.fn(),
 };
 
-jest.mock('@/hooks/useDashboardData');
+jest.mock('@/hooks/use-dashboard-data');
 
 describe('AdminDashboard Component', () => {
   beforeEach(() => {

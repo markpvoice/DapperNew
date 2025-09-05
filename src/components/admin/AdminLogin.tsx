@@ -7,7 +7,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 
 interface AdminLoginProps {

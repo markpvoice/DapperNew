@@ -53,11 +53,11 @@ const mockUseCalendarManagement = {
   refresh: jest.fn(),
 };
 
-jest.mock('@/hooks/useCalendarManagement', () => ({
+jest.mock('@/hooks/use-calendar-management', () => ({
   useCalendarManagement: jest.fn(() => mockUseCalendarManagement),
 }));
 
-const mockUseCalendarManagementHook = jest.mocked(require('@/hooks/useCalendarManagement').useCalendarManagement);
+const mockUseCalendarManagementHook = jest.mocked(require('@/hooks/use-calendar-management').useCalendarManagement);
 
 describe('CalendarManagement Component', () => {
   beforeEach(() => {

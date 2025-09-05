@@ -6,7 +6,7 @@
  */
 
 import { renderHook, waitFor, act } from '@testing-library/react';
-import { useCalendarManagement } from '@/hooks/useCalendarManagement';
+import { useCalendarManagement } from '@/hooks/use-calendar-management';
 
 // Mock the API calls
 global.fetch = jest.fn();

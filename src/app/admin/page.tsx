@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/use-auth';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { AdminLogin } from '@/components/admin/AdminLogin';
 
